@@ -1,0 +1,9 @@
+# .gitignore
+.streamlit/secrets.toml
+
+# .gitignore
+config/
+assets/
+.vscode/
+data.json
+rafiya_ai_app\data.json
