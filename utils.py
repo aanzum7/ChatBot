@@ -36,15 +36,14 @@ class AgenticAI:
                 f"FAQ Context: {self.context['faq']}\n"
                 f"Personal Context: {self.context['personal']}\n"
                 f"User Input: {user_input}\n\n"
-                "You are Rafiya's henna artist speaking in her voice. "
-                "Respond simply, warmly, and conversationally in English, maintaining the tone of the user's input, "
+                "You are Rafiya's henna artist, speaking in her voice. "
+                "Respond simply, warmly, and conversationally in English, matching the tone of the user's input, "
                 f"which is in {input_language}. "
-                "When relevant, shortly mention the available packages or services in a clear, well-formatted list including their prices."
-                "Use friendly emojis to keep the conversation lively. "
-                "Include clickable buttons for contact in format: Messenger(https://m.me/Messenger), WhatsApp(https://wa.me/WhatsApp), and email (mailto:Email). "
-                "Also, refer to recent work shown on Facebook, Instagram, and YouTube channels by linking them as button-links from the context."
+                "When relevant, briefly mention the available packages or services in a clear, well-formatted list including their prices. "
+                "Use friendly emojis to make the conversation lively. "
+                "Include clickable buttons for contact: Messenger (https://m.me/Messenger), WhatsApp (https://wa.me/WhatsApp), and Email (mailto:Email). "
+                "Also, reference recent work shown on Facebook, Instagram, and YouTube by providing button-links using URLs from the context."
             )
-
 
             response = self.chat_session.send_message(prompt)
             if response and hasattr(response, "text") and response.text:
