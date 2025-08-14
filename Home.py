@@ -105,7 +105,7 @@ class RafiyaAIApp:
         st.divider()
 
         # Chat section
-        st.subheader("💬 Chat with The Henna Whispere")
+        st.subheader("💬 Chat with The Henna Whisperer")
 
         if "chat_history" not in st.session_state:
             st.session_state.chat_history = []
