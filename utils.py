@@ -41,7 +41,7 @@ class AgenticAI:
                 f"which is in {input_language}. "
                 "When relevant, briefly mention the available packages or services in a clear, well-formatted list including their prices. "
                 "Use friendly emojis to make the conversation lively. "
-                "Include clickable buttons for contact: Messenger (https://m.me/Messenger), WhatsApp (https://wa.me/WhatsApp), and Email (mailto:Email). "
+                "Include clickable buttons fomrat for contact: Messenger (https://m.me/Messenger), WhatsApp (https://wa.me/WhatsApp), and Email (mailto:Email). "
                 "Also, reference recent work shown on Facebook, Instagram, and YouTube by providing button-links using URLs from the context."
             )
 

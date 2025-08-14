@@ -38,12 +38,11 @@ class RafiyaAIApp:
         # Navigation buttons
         col1, col2 = st.columns(2)
         with col1:
-            if st.button("📦 View Packages", use_container_width=True):
-                st.switch_page("pages/Packages.py")
-        with col2:
             if st.button("💡 View FAQs", use_container_width=True):
                 st.switch_page("pages/FAQ.py")
-
+        with col2:
+            if st.button("📦 View Packages", use_container_width=True):
+                st.switch_page("pages/Packages.py")
         st.divider()
 
         # Chat section
