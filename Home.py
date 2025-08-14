@@ -90,8 +90,8 @@ class RafiyaAIApp:
         """, unsafe_allow_html=True)
 
         # App name & tagline
-        st.markdown(f"<h1 style='text-align:center;'>🌿 Rafiya’s Henna Art Clone 🌿</h1>", unsafe_allow_html=True)
-        st.markdown(f"<p style='text-align:center; color:{HEADER_COLOR}; font-style:italic;'>✨ Where Mehendi Meets AI — Your Art, Your Way ✨</p>", unsafe_allow_html=True)
+        st.markdown(f"<h1 style='text-align:center;'>🌿 Rafiya’s Henna Art 🌿</h1>", unsafe_allow_html=True)
+        st.markdown(f"<p style='text-align:center; color:{HEADER_COLOR}; font-style:italic;'>✨ Tradition in Every Stroke, Intelligence in Every Answer ✨</p>", unsafe_allow_html=True)
         st.divider()
 
         # Navigation buttons
@@ -105,7 +105,7 @@ class RafiyaAIApp:
         st.divider()
 
         # Chat section
-        st.subheader("💬 Chat with Rafiya’s Henna Art Clone")
+        st.subheader("💬 Chat with The Henna Whispere")
 
         if "chat_history" not in st.session_state:
             st.session_state.chat_history = []

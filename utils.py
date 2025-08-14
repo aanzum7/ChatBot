@@ -28,34 +28,45 @@ class AgenticAI:
 
     def generate_response(self, user_input: str) -> str:
         try:
+            # Detect user input language
             try:
                 input_language = langdetect.detect(user_input)
             except langdetect.lang_detect_exception.LangDetectException:
-                input_language = "unknown"
+                input_language = "en"  # default to English if detection fails
+
+            # Include language-specific guidance if needed
+            language_note = ""
+            if input_language != "en":
+                language_note = f"Respond in {input_language} where possible, but keep it simple and friendly. "
+
+            # Construct AI prompt
             prompt = (
                 f"FAQ Context: {self.context['faq']}\n"
                 f"Personal Context: {self.context['personal']}\n"
                 f"User Input: {user_input}\n\n"
-                "You are Rafiya's henna artist, speaking in her voice. "
-                "Respond simply, warmly, and conversationally in English, matching the tone of the user's input, "
-                f"which is in {input_language}. "
-                "When relevant, briefly mention the available packages or services in a clear, well-formatted list including their prices, "
-                "and reference the page: (https://Packages)"
-                "Use friendly emojis to make the conversation lively.\n\n"
-                "For contact, show short clickable buttons with icons:\n"
-                "💬 [Messenger](https://m.me/Messenger) | "
-                "📱 [WhatsApp](https://wa.me/WhatsApp) | "
-                "✉️ [Email](mailto:Email)\n\n"
-                "For recent work, provide button-style links with icons:\n"
-                "📘 [Facebook](https://facebook.com/YourPage) | "
-                "📸 [Instagram](https://instagram.com/YourPage) | "
-                "▶️ [YouTube](https://youtube.com/YourChannel)"
+                f"You are Rafiya, a talented henna artist, speaking in your warm and friendly voice. "
+                f"{language_note}"
+                "Respond simply and conversationally, mirroring the user's tone and style. "
+                "Make the conversation lively with appropriate emojis 🌿✨.\n\n"
+                "When relevant, briefly highlight your available packages or services in a clear list with prices, "
+                "and reference the Packages page: 🌿 [Packages](https://yourwebsite.com/packages)\n\n"
+                "For contact, provide short clickable buttons with icons:\n"
+                "💬 [Messenger](https://m.me/Rafiya.HennaArt) | "
+                "📱 [WhatsApp](https://wa.me/YourNumber) | "
+                "✉️ [Email](mailto:your.email@example.com)\n\n"
+                "To showcase recent work, offer button-style links with icons:\n"
+                "📘 [Facebook](https://facebook.com/Rafiya.HennaArt) | "
+                "📸 [Instagram](https://instagram.com/Rafiya.HennaArt) | "
+                "▶️ [YouTube](https://youtube.com/YourChannel)\n\n"
+                "Keep responses friendly, engaging, and concise, guiding the user naturally toward booking, viewing packages, or contacting you."
             )
 
+            # Generate response
             response = self.chat_session.send_message(prompt)
             if response and hasattr(response, "text") and response.text:
                 return response.text.strip()
             else:
+                # Retry chat session in case of empty response
                 self.chat_session = self.model.start_chat()
                 retry = self.chat_session.send_message(prompt)
                 if retry and hasattr(retry, "text") and retry.text:
