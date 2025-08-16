@@ -1,5 +1,5 @@
 import streamlit as st
-from utils import AgenticAI, FAQHandler
+from utils.utils import AgenticAI, FAQHandler
 
 # 🎨 GLOBAL COLOR PALETTE (Mehendi Theme)
 BACKGROUND_COLOR = "#f9f7f1"      # Cream background
@@ -43,7 +43,7 @@ class RafiyaAIApp:
         return self.agentic_ai.generate_response(query)
 
     def run(self):
-        st.set_page_config(page_title="Rafiya's Henna Art Clone", layout="wide")
+        st.set_page_config(page_title="Rafiya's Henna Art", layout="wide")
 
         # Inject global theme styles
         st.markdown(f"""
@@ -98,7 +98,7 @@ class RafiyaAIApp:
         col1, col2 = st.columns(2)
         with col1:
             if st.button("💡 View FAQs", use_container_width=True):
-                st.switch_page("pages/FAQ.py")
+                st.switch_page("pages/FAQs.py")
         with col2:
             if st.button("📦 View Packages", use_container_width=True):
                 st.switch_page("pages/Packages.py")

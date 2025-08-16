@@ -7,3 +7,6 @@ assets/
 .vscode/
 data.json
 rafiya_ai_app\data.json
+.venv/
+_pytest_cache/
+__pycache__/

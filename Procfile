@@ -1,1 +1,1 @@
-web: streamlit run aanzum.py --server.port=$PORT
+web: streamlit run Home.py --server.port=$PORT
