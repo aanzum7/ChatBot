@@ -91,7 +91,7 @@ class RafiyaAIApp:
 
         # App name & tagline
         st.markdown(f"<h1 style='text-align:center;'>🌿 Rafiya’s Henna Art 🌿</h1>", unsafe_allow_html=True)
-        st.markdown(f"<p style='text-align:center; color:{HEADER_COLOR}; font-style:italic;'>✨ Tradition in Every Stroke, Intelligence in Every Answer ✨</p>", unsafe_allow_html=True)
+        st.markdown(f"<p style='text-align:center; color:{HEADER_COLOR}; font-style:italic;'>Tradition in Every Stroke, Intelligence in Every Answer! ✨</p>", unsafe_allow_html=True)
         st.divider()
 
         # Navigation buttons
