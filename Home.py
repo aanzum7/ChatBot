@@ -2,18 +2,17 @@ import streamlit as st
 from utils.utils import AgenticAI, FAQHandler
 
 # 🎨 GLOBAL COLOR PALETTE (Mehendi Theme)
-BACKGROUND_COLOR = "#f9f7f1"      # Cream background
-TEXT_COLOR = "#3b3a36"            # Dark earthy brown (general text)
-HEADER_COLOR = "#6b8e23"          # Olive green
-BUTTON_COLOR = "#b8860b"          # Goldenrod
-BUTTON_HOVER_COLOR = "#a07400"    # Darker gold
-USER_CHAT_BG = "#e6f2e1"          # Soft mehendi green
-USER_BORDER_COLOR = "#6b8e23"     # Olive green border
-USER_TEXT_COLOR = "#2f4f2f"       # Dark green for user text
-ASSISTANT_CHAT_BG = "#fdf5e6"     # Light gold
-ASSISTANT_BORDER_COLOR = "#b8860b"# Goldenrod border
-ASSISTANT_TEXT_COLOR = "#5b4636"  # Warm brown for assistant text
-
+BACKGROUND_COLOR = "#f9f7f1"       # Cream background
+TEXT_COLOR = "#3b3a36"             # Dark earthy brown
+HEADER_COLOR = "#6b8e23"           # Olive green
+BUTTON_COLOR = "#b8860b"            # Goldenrod
+BUTTON_HOVER_COLOR = "#a07400"      # Darker gold
+USER_CHAT_BG = "#e6f2e1"           # Soft mehendi green
+USER_BORDER_COLOR = "#6b8e23"       # Olive green border
+USER_TEXT_COLOR = "#2f4f2f"         # Dark green for user text
+ASSISTANT_CHAT_BG = "#fdf5e6"       # Light gold
+ASSISTANT_BORDER_COLOR = "#b8860b"  # Goldenrod border
+ASSISTANT_TEXT_COLOR = "#5b4636"    # Warm brown
 
 class RafiyaAIApp:
     def __init__(self):
@@ -25,18 +24,12 @@ class RafiyaAIApp:
         )
 
     def load_configuration(self):
-        """
-        Load FAQ, personal data, and API key from Streamlit secrets.
-        """
         faq_data = st.secrets["faq"]["questions"]
         personal_data = st.secrets["personal"]["data"]
         api_key = st.secrets["genai"]["api_key"]
         return faq_data, personal_data, api_key
 
     def process_user_query(self, query: str) -> str:
-        """
-        First check FAQ similarity; fallback to AI generation.
-        """
         faq_q, faq_a = self.faq_handler.find_similar_question(query)
         if faq_a:
             return f"🔍 **FAQ Match:** *{faq_q}*\n\n{faq_a}"
@@ -61,17 +54,20 @@ class RafiyaAIApp:
                 color: white !important;
                 border-radius: 8px;
                 border: none;
-                padding: 8px 16px;
+                padding: 10px 18px;
                 font-size: 16px;
                 font-weight: bold;
+                transition: all 0.3s ease;
             }}
             .stButton>button:hover {{
                 background-color: {BUTTON_HOVER_COLOR} !important;
+                box-shadow: 0px 3px 12px rgba(0,0,0,0.2);
+                transform: translateY(-1px);
             }}
             .chat-box {{
-                padding: 12px;
+                padding: 14px;
                 border-radius: 10px;
-                margin-bottom: 8px;
+                margin-bottom: 10px;
                 box-shadow: 0px 2px 6px rgba(0,0,0,0.1);
                 font-size: 15px;
                 line-height: 1.5;

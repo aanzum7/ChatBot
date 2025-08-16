@@ -117,7 +117,7 @@ class PackageDisplay:
                     st.stop()
             else:
                 st.markdown(
-                    '<div style="color: #6b8e23; font-weight: bold; margin-top: 8px; text-align: center;">Click again to expand more packages</div>',
+                    f'<div style="color: {HEADER_COLOR}; font-weight: bold; margin-top: 8px; text-align: center;">Click again to expand more packages</div>',
                     unsafe_allow_html=True,
                 )
         else:
@@ -134,15 +134,20 @@ class PackageDisplay:
                 margin-bottom: 20px;
                 background: {CARD_BG};
                 box-shadow: 0 4px 12px {CARD_SHADOW};
-                height: 100%;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                height: 400px; /* fixed height for all cards */
             ">
-                <h3 style="color: {HEADER_COLOR}; margin-top:0;">{pkg['name']}</h3>
-                <p style="color:{TEXT_COLOR};"><b>Type:</b> {pkg['type']}</p>
-                <p style="color:{TEXT_COLOR};"><b>Length:</b> {pkg['length']}</p>
-                <p style="color:{TEXT_COLOR};"><b>Hand:</b> {pkg['hand']}</p>
-                <p style="color:{TEXT_COLOR};"><b>Side:</b> {pkg['side']}</p>
-                <p style="color:{DESC_COLOR}; white-space: pre-wrap;">{pkg['description']}</p>
-                <p style="color:{PRICE_COLOR}; font-weight:bold;"><b>Price:</b> {pkg['price']} BDT</p>
+                <div style="overflow: hidden; flex-grow: 1;">
+                    <h3 style="color: {HEADER_COLOR}; margin-top:0; margin-bottom: 8px; line-height: 1.2;">{pkg['name']}</h3>
+                    <p style="color:{TEXT_COLOR}; margin:2px 0;"><b>Type:</b> {pkg['type']}</p>
+                    <p style="color:{TEXT_COLOR}; margin:2px 0;"><b>Length:</b> {pkg['length']}</p>
+                    <p style="color:{TEXT_COLOR}; margin:2px 0;"><b>Hand:</b> {pkg['hand']}</p>
+                    <p style="color:{TEXT_COLOR}; margin:2px 0;"><b>Side:</b> {pkg['side']}</p>
+                    <p style="color:{DESC_COLOR}; white-space: pre-wrap; overflow-y: auto; max-height: 150px; margin-top: 8px;">{pkg['description']}</p>
+                </div>
+                <p style="color:{PRICE_COLOR}; font-weight:bold; margin-top:10px;"><b>Price:</b> {pkg['price']} BDT</p>
             </div>
             """,
             unsafe_allow_html=True,
@@ -214,7 +219,6 @@ def main():
             border: 2px solid {CARD_BORDER} !important;
             font-weight: bold;
         }}
-        /* 🌿 Picked/Active Slider Number */
         .stSlider span[data-baseweb="tag"].active {{
             background: {CARD_BORDER} !important;
             color: white !important;
@@ -259,7 +263,6 @@ def main():
     pkg_display = PackageDisplay(filtered)
     pkg_display.display_cards()
     pkg_display.show_more_button()
-
 
 if __name__ == "__main__":
     main()
