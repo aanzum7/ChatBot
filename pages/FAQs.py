@@ -14,7 +14,7 @@ CARD_SHADOW = "rgba(0,0,0,0.08)"  # Soft shadow
 BUTTON_HOVER_COLOR = "#a07400"    # Darker gold hover for interactive elements
 
 # Set page config
-st.set_page_config(page_title="FAQs - Rafiya’s Henna Art", layout="wide")
+st.set_page_config(page_title="FAQs - Rafiya’s Henna Art", page_icon="https://lh3.googleusercontent.com/sitesv/AAzXCkf-1N6x6wwyDShvokvM-bQgyx7RMwgRPfrY2rbKk5eVsByjS9PhQ3C0XOd9re_f8VFhc0guPTV7cNUbQclM8N3l3CRpvj2b8Vd_pi89-5OJX0ND_P7HJrplzTH7MOUYdauYisHiQrEbXQjlAOCC9BMeDaifdkSnaTkE0zIotl6eXhHMp7SDjiR95jo=w16383", layout="wide")
 
 # Inject CSS for theme
 st.markdown(f"""
