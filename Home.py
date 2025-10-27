@@ -36,7 +36,7 @@ class RafiyaAIApp:
         return self.agentic_ai.generate_response(query)
 
     def run(self):
-        st.set_page_config(page_title="Rafiya's Henna Art", layout="wide")
+        st.set_page_config(page_title="Rafiya's Henna Art", page_icon="https://lh3.googleusercontent.com/sitesv/AAzXCkf-1N6x6wwyDShvokvM-bQgyx7RMwgRPfrY2rbKk5eVsByjS9PhQ3C0XOd9re_f8VFhc0guPTV7cNUbQclM8N3l3CRpvj2b8Vd_pi89-5OJX0ND_P7HJrplzTH7MOUYdauYisHiQrEbXQjlAOCC9BMeDaifdkSnaTkE0zIotl6eXhHMp7SDjiR95jo=w16383" , layout="wide")
 
         # Inject global theme styles
         st.markdown(f"""
