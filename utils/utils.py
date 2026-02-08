@@ -20,7 +20,7 @@ class AgenticAI:
             generation_config={
                 "temperature": 0.1,
                 "top_p": 0.9,
-                "max_output_tokens": 512,
+                "max_output_tokens": 1024,
             },
         )
         self.chat_session = self.model.start_chat()
@@ -38,7 +38,7 @@ class AgenticAI:
             language_note = ""
             if input_language != "en":
                 language_note = f"Respond in {input_language} where possible, but keep it simple and friendly. "
-                
+                            
             prompt = (
                 f"FAQ Context: {self.context['faq']}\n"
                 f"Personal Context: {self.context['personal']}\n"
@@ -60,10 +60,17 @@ class AgenticAI:
                 "   - Include highlights, learning outcomes, and benefits dynamically.\n"
                 "   - Link for full details: 🌿 [Courses & Training](https://sites.google.com/view/rafiyashennaart/courses-training)\n"
                 "   - Guide users on how to **enroll**.\n\n"
+                "Respond in **two formats for each query**:\n"
+                "A) **Summary Response:** A short, friendly, concise response highlighting key points, links, and actions.\n"
+                "B) **Complete Response:** A detailed, friendly response including:\n"
+                "   - FAQ answers if relevant\n"
+                "   - Relevant package/product/course details (short lists with prices)\n"
+                "   - Full contact options and action guidance\n"
+                "   - Links to recent works and social media\n\n"
                 "Always keep responses:\n"
-                "- Friendly, concise, and engaging 🌿✨\n"
-                "- Include relevant emojis to make chat lively\n"
-                "- Provide clickable contact options for any action:\n"
+                "- Friendly, engaging, and emoji-rich 🌿✨\n"
+                "- Guide users toward naturally booking, purchasing, enrolling, or viewing packages\n"
+                "- Provide clickable contact options:\n"
                 "💬 [Messenger](https://m.me/Rafiya.HennaArt) | "
                 "📱 [WhatsApp](https://wa.me/8801323278403) | "
                 "✉️ [Email](mailto:rafiyashennaart@gmail.com)\n\n"
@@ -71,15 +78,8 @@ class AgenticAI:
                 "📘 [Facebook](https://www.facebook.com/share/1CFfRyJ1wY/) | "
                 "📸 [Instagram](https://www.instagram.com/rafiyas_henna_art) | "
                 "▶️ [YouTube](https://youtube.com/@RafiyasHennaArt)\n\n"
-                "Actions to guide the user toward naturally:\n"
-                "- **Booking an appointment** for henna services\n"
-                "- **Purchasing products** 🌿\n"
-                "- **Enrolling in courses** 🌿\n"
-                "- **Viewing packages** 🌿\n"
-                "- **Contacting via Messenger, WhatsApp, or Email**\n\n"
                 "If a query is not listed in the FAQ or data, politely inform the user and suggest the closest relevant option with links and action buttons."
             )
-      
 
             # Generate response
             response = self.chat_session.send_message(prompt)
