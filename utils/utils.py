@@ -18,7 +18,7 @@ class AgenticAI:
         self.model = genai.GenerativeModel(
             model_name="gemini-2.5-flash-lite",
             generation_config={
-                "temperature": 0.5,
+                "temperature": 0.1,
                 "top_p": 0.9,
                 "max_output_tokens": 512,
             },
