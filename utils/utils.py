@@ -20,7 +20,7 @@ class AgenticAI:
             generation_config={
                 "temperature": 0.1,
                 "top_p": 0.9,
-                "max_output_tokens": 1024,
+                "max_output_tokens": 512,
             },
         )
         self.chat_session = self.model.start_chat()
