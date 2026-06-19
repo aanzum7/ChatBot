@@ -1,274 +1,106 @@
 import streamlit as st
+from utils.theme import inject_global_theme, render_header, CONFIG
 
-# 🎨 GLOBAL COLOR PALETTE (Mehendi Theme)
-BACKGROUND_COLOR = "#f9f7f1"      # Cream background
-TEXT_COLOR = "#3b3a36"            # Dark earthy brown
-HEADER_COLOR = "#6b8e23"          # Olive green
-CARD_BORDER = "#b8860b"           # Goldenrod
-CARD_BG = "#ffffff"                # White for contrast
-CARD_SHADOW = "rgba(0,0,0,0.08)"  # Soft shadow
-PRICE_COLOR = "#2f4f2f"           # Deep green
-DESC_COLOR = "#5b4636"            # Warm brown
-BUTTON_HOVER_COLOR = "#a07400"    # Darker gold hover
-SLIDER_GRADIENT_ACTIVE = f"linear-gradient(to right, {CARD_BORDER}, {BUTTON_HOVER_COLOR})"
-
-# ---------- FILTER CLASS ----------
-class PackageFilter:
+class PackageShowcaseEngine:
     def __init__(self, packages):
         self.packages = packages
-        self.selected_type = "All"
-        self.selected_length = "All"
-        self.selected_hand = "All"
-        self.selected_side = "All"
-        self.selected_price = 0
+        if "visible_packages_count" not in st.session_state:
+            st.session_state.visible_packages_count = 4
 
     def render_filters(self):
-        types = sorted(set(p['type'] for p in self.packages))
-        col1, col2, col3, col4, col5 = st.columns([1,1,1,1,2])
-
+        col1, col2, col3, col4, col5 = st.columns([1, 1, 1, 1, 2])
+        
         with col1:
-            self.selected_type = st.selectbox("Type", ["All"] + types)
-
-        lengths = sorted(set(
-            p['length'] for p in self.packages
-            if self.selected_type == "All" or p['type'] == self.selected_type
-        ))
+            types = sorted(list(set(p['type'] for p in self.packages)))
+            sel_type = st.selectbox("Style Type", ["All"] + types)
+            
+        filtered = [p for p in self.packages if sel_type == "All" or p['type'] == sel_type]
+        
         with col2:
-            self.selected_length = st.selectbox("Length", ["All"] + lengths)
-
-        hands = sorted(set(
-            p['hand'] for p in self.packages
-            if (self.selected_type == "All" or p['type'] == self.selected_type) and
-               (self.selected_length == "All" or p['length'] == self.selected_length)
-        ))
+            lengths = sorted(list(set(p['length'] for p in filtered)))
+            sel_length = st.selectbox("Extension", ["All"] + lengths)
+            
+        filtered = [p for p in filtered if sel_length == "All" or p['length'] == sel_length]
+        
         with col3:
-            self.selected_hand = st.selectbox("Hand", ["All"] + hands)
-
-        sides = sorted(set(
-            p['side'] for p in self.packages
-            if (self.selected_type == "All" or p['type'] == self.selected_type) and
-               (self.selected_length == "All" or p['length'] == self.selected_length) and
-               (self.selected_hand == "All" or p['hand'] == self.selected_hand)
-        ))
+            hands = sorted(list(set(p['hand'] for p in filtered)))
+            sel_hand = st.selectbox("Hand Count", ["All"] + hands)
+            
+        filtered = [p for p in filtered if sel_hand == "All" or p['hand'] == sel_hand]
+        
         with col4:
-            self.selected_side = st.selectbox("Side", ["All"] + sides)
+            sides = sorted(list(set(p['side'] for p in filtered)))
+            sel_side = st.selectbox("Coverage Side", ["All"] + sides)
 
-        price_filtered = [
-            p['price'] for p in self.packages
-            if (self.selected_type == "All" or p['type'] == self.selected_type) and
-               (self.selected_length == "All" or p['length'] == self.selected_length) and
-               (self.selected_hand == "All" or p['hand'] == self.selected_hand) and
-               (self.selected_side == "All" or p['side'] == self.selected_side)
-        ]
-        min_price, max_price = (min(price_filtered), max(price_filtered)) if price_filtered else (0, 0)
-
+        filtered = [p for p in filtered if sel_side == "All" or p['side'] == sel_side]
+        
         with col5:
-            if min_price == max_price:
-                self.selected_price = st.number_input(
-                    "Max Price (BDT)", value=max_price, disabled=True)
+            prices = [p['price'] for p in filtered]
+            min_p, max_p = (min(prices), max(prices)) if prices else (0, 0)
+            if min_p == max_p:
+                st.number_input("Max Budget (BDT)", value=max_p, disabled=True)
+                sel_price = max_p
             else:
-                self.selected_price = st.slider(
-                    "Max Price (BDT)", min_price, max_price, max_price)
+                sel_price = st.slider("Max Budget (BDT)", int(min_p), int(max_p), int(max_p))
 
-    def get_filter_tuple(self):
-        return (self.selected_type, self.selected_length, self.selected_hand, self.selected_side, self.selected_price)
+        # Dynamic structural signature state management
+        current_sig = f"{sel_type}-{sel_length}-{sel_hand}-{sel_side}-{sel_price}"
+        if st.session_state.get("last_filter_sig") != current_sig:
+            st.session_state.visible_packages_count = 4
+            st.session_state.last_filter_sig = current_sig
 
-    def apply_filters(self):
-        filtered = [
-            p for p in self.packages
-            if (self.selected_type == "All" or p['type'] == self.selected_type) and
-               (self.selected_length == "All" or p['length'] == self.selected_length) and
-               (self.selected_hand == "All" or p['hand'] == self.selected_hand) and
-               (self.selected_side == "All" or p['side'] == self.selected_side) and
-               p['price'] <= self.selected_price
-        ]
-        return filtered
+        return [p for p in filtered if p['price'] <= sel_price]
 
-# ---------- DISPLAY CLASS ----------
-class PackageDisplay:
-    def __init__(self, filtered_packages):
-        self.filtered = filtered_packages
-        if "show_all" not in st.session_state:
-            st.session_state.show_all = False
-        if "show_more_clicked" not in st.session_state:
-            st.session_state.show_more_clicked = False
+    def display_grid(self, matched_packages):
+        if not matched_packages:
+            st.warning("No artistry packages match your chosen layout configurations.")
+            return
 
-    def reset_show_more_clicked(self):
-        st.session_state.show_more_clicked = False
+        visible_pool = matched_packages[:st.session_state.visible_packages_count]
 
-    def display_cards(self):
-        display_data = self.filtered if st.session_state.show_all else self.filtered[:4]
-
-        # Display cards in rows of up to 4
-        for i in range(0, len(display_data), 4):
-            row_cards = display_data[i:i+4]
-            cols = st.columns(len(row_cards))
-            for col, pkg in zip(cols, row_cards):
+        # Renders standard 4-column balanced card matrices
+        for idx in range(0, len(visible_pool), 4):
+            row_items = visible_pool[idx:idx+4]
+            cols = st.columns(4)
+            for col, item in zip(cols, row_items):
                 with col:
-                    self.render_card(pkg)
+                    st.markdown(f"""
+                    <div style="border:2px solid {CONFIG['accent_gold']}; border-radius:12px; padding:16px; 
+                         background:{CONFIG['card_bg']}; box-shadow:0 4px 10px {CONFIG['card_shadow']}; 
+                         display:flex; flex-direction:column; justify-content:space-between; height:390px; margin-bottom:16px;">
+                        <div>
+                            <h3 style="margin-top:0; margin-bottom:8px; font-size:17px; line-height:1.2;">{item['name']}</h3>
+                            <div style="font-size:12px; margin:2px 0;"><b>🏷️ Style:</b> {item['type']}</div>
+                            <div style="font-size:12px; margin:2px 0;"><b>📏 Length:</b> {item['length']}</div>
+                            <div style="font-size:12px; margin:2px 0;"><b>✋ Scope:</b> {item['hand']} ({item['side']})</div>
+                            <p style="color:{CONFIG['bot_text']}; font-size:12px; margin-top:8px; overflow-y:auto; max-height:140px; line-height:1.4;">{item['description']}</p>
+                        </div>
+                        <div style="color:{CONFIG['user_text']}; font-weight:bold; font-size:15px; border-top:1px dashed #DDD; padding-top:6px; margin-top:6px;">
+                            Price: {item['price']} BDT
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
 
-    def show_more_button(self):
-        total_filtered = len(self.filtered)
-        if not st.session_state.show_all and total_filtered > 4:
-            if not st.session_state.show_more_clicked:
-                if st.button("🌿 Show More Packages (Click Twice)", use_container_width=True):
-                    st.session_state.show_all = True
-                    st.session_state.show_more_clicked = True
-                    st.stop()
-            else:
-                st.markdown(
-                    f'<div style="color: {HEADER_COLOR}; font-weight: bold; margin-top: 8px; text-align: center;">Click again to expand more packages</div>',
-                    unsafe_allow_html=True,
-                )
-        else:
-            self.reset_show_more_clicked()
+        if len(matched_packages) > st.session_state.visible_packages_count:
+            st.markdown("<br>", unsafe_allow_html=True)
+            if st.button("🌿 Expand Additional Packages", use_container_width=True):
+                st.session_state.visible_packages_count += 4
+                st.rerun()
 
-    @staticmethod
-    def render_card(pkg):
-        st.markdown(
-            f"""
-            <div style="
-                border: 2px solid {CARD_BORDER};
-                border-radius: 15px;
-                padding: 15px;
-                margin-bottom: 20px;
-                background: {CARD_BG};
-                box-shadow: 0 4px 12px {CARD_SHADOW};
-                display: flex;
-                flex-direction: column;
-                justify-content: space-between;
-                height: 400px; /* fixed height for all cards */
-            ">
-                <div style="overflow: hidden; flex-grow: 1;">
-                    <h3 style="color: {HEADER_COLOR}; margin-top:0; margin-bottom: 8px; line-height: 1.2;">{pkg['name']}</h3>
-                    <p style="color:{TEXT_COLOR}; margin:2px 0;"><b>Type:</b> {pkg['type']}</p>
-                    <p style="color:{TEXT_COLOR}; margin:2px 0;"><b>Length:</b> {pkg['length']}</p>
-                    <p style="color:{TEXT_COLOR}; margin:2px 0;"><b>Hand:</b> {pkg['hand']}</p>
-                    <p style="color:{TEXT_COLOR}; margin:2px 0;"><b>Side:</b> {pkg['side']}</p>
-                    <p style="color:{DESC_COLOR}; white-space: pre-wrap; overflow-y: auto; max-height: 150px; margin-top: 8px;">{pkg['description']}</p>
-                </div>
-                <p style="color:{PRICE_COLOR}; font-weight:bold; margin-top:10px;"><b>Price:</b> {pkg['price']} BDT</p>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-
-# ---------- MAIN ----------
 def main():
- # Set page config
-    st.set_page_config(
-        page_title="Packages - Rafiya’s Henna Art",
-        page_icon="logo/rafiya.jpg",
-        layout="wide"
-    )
-  
-    st.markdown(f"""
-        <style>
-        /* 🌿 Global Page Styling */
-        body {{
-            background-color: {BACKGROUND_COLOR};
-            color: {TEXT_COLOR};
-            font-family: 'Segoe UI', sans-serif;
-        }}
-        h1 {{
-            color: {HEADER_COLOR};
-            text-align:center;
-        }}
-        hr {{
-            border: 1px solid {CARD_BORDER};
-        }}
+    inject_global_theme("Packages", "📦")
+    if st.button("← Back to Lounge Home"):
+        st.switch_page("Home.py")
+        
+    render_header("Artistry Portfolios", "Pick the perfect henna package for your special occasion!")
 
-        /* 🌿 Button Styling */
-        .stButton>button {{
-            background-color: {CARD_BORDER} !important;
-            color: white !important;
-            border-radius: 8px;
-            border: none;
-            padding: 8px 16px;
-            font-size: 16px;
-            font-weight: bold;
-            transition: all 0.3s ease;
-        }}
-        .stButton>button:hover {{
-            background-color: {BUTTON_HOVER_COLOR} !important;
-            box-shadow: 0px 4px 12px rgba(0,0,0,0.2);
-            transform: translateY(-1px);
-        }}
-
-        /* 🌿 Selectbox Styling */
-        div[data-baseweb="select"] > div {{
-            border: 2px solid {CARD_BORDER} !important;
-            border-radius: 8px !important;
-        }}
-        div[data-baseweb="select"]:focus-within > div {{
-            border-color: {BUTTON_HOVER_COLOR} !important;
-            box-shadow: 0 0 6px rgba(184,134,11,0.4);
-        }}
-
-        /* 🌿 Slider Track & Thumb */
-        .stSlider [role="slider"] {{
-            background-color: {CARD_BORDER} !important;
-            border: 2px solid white !important;
-        }}
-        .stSlider [data-baseweb="slider"] > div > div {{
-            background: {SLIDER_GRADIENT_ACTIVE} !important;
-        }}
-        .stSlider [data-baseweb="slider"] > div > div > div {{
-            background: {CARD_BORDER} !important;
-        }}
-
-        /* 🌿 Slider Number Box Styling */
-        .stSlider span[data-baseweb="tag"] {{
-            background: black !important;
-            color: white !important;
-            border-radius: 8px !important;
-            border: 2px solid {CARD_BORDER} !important;
-            font-weight: bold;
-        }}
-        .stSlider span[data-baseweb="tag"].active {{
-            background: {CARD_BORDER} !important;
-            color: white !important;
-        }}
-        </style>
-        """, unsafe_allow_html=True)
-
-    # Title
-    st.markdown("<h1>🌿 Packages 🌿</h1>", unsafe_allow_html=True)
-    st.markdown(f"<p style='text-align:center; color:{HEADER_COLOR}; font-style:italic;'>Pick the perfect henna package for your special occasion! 📦</p>", unsafe_allow_html=True)
-    st.markdown(f"<hr style='border:1px solid {CARD_BORDER};'>", unsafe_allow_html=True)
-
-    # Load packages from Streamlit secrets
-    packages = st.secrets["personal"]["data"].get("packages", [])
-
+    packages = st.secrets.get("personal", {}).get("data", {}).get("packages", [])
     if not packages:
-        st.info("No packages available.")
+        st.info("No package listings found in configuration secrets.")
         return
 
-    # Instantiate filter class and render filters
-    pkg_filter = PackageFilter(packages)
-    pkg_filter.render_filters()
-
-    # Reset show_all on filter changes
-    current_filter = pkg_filter.get_filter_tuple()
-    if "last_filter" not in st.session_state:
-        st.session_state.last_filter = None
-
-    if st.session_state.last_filter != current_filter:
-        st.session_state.show_all = False
-        st.session_state.last_filter = current_filter
-        st.session_state.show_more_clicked = False
-
-    # Apply filters
-    filtered = pkg_filter.apply_filters()
-
-    if not filtered:
-        st.warning("No packages match your filters.")
-        return
-
-    # Instantiate display class and show packages
-    pkg_display = PackageDisplay(filtered)
-    pkg_display.display_cards()
-    pkg_display.show_more_button()
+    engine = PackageShowcaseEngine(packages)
+    engine.display_grid(engine.render_filters())
 
 if __name__ == "__main__":
     main()
