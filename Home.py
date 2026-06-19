@@ -12,22 +12,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # ---------------------------
-# Premium Black & Gold Theme Configuration
-# ---------------------------
-CONFIG = {
-    "bg_color": "#0D0F12",          # Premium dark background
-    "card_bg": "#161920",           # High-contrast surface cards
-    "border_color": "#262B36",      # Clean boundaries
-    "text_color": "#F3F4F6",        # Premium white text
-    "text_muted": "#9CA3AF",        # Readable labels
-    "accent_rose_gold": "#D4AF37",  # Metallic gold accent
-    "hover_gold": "#E5C158",        # Active interaction glow
-    "user_msg_bg": "#1F3520",       # Dark organic green DM bubble
-    "bot_msg_bg": "#231E16"         # Warm amber DM bubble
-}
-
-# ---------------------------
-# Safe Session State Initialization
+# Global Session State Checks
 # ---------------------------
 if "selected_package" not in st.session_state:
     st.session_state.selected_package = None
@@ -130,38 +115,42 @@ class FAQHandler:
         return None, None
 
 # ---------------------------
-# Global CSS Injector
+# Production-Safe Premium CSS Injector
 # ---------------------------
 def apply_premium_styles():
-    st.markdown(f"""
+    st.set_page_config(page_title="Rafiya's Henna Portal", page_icon="🌿", layout="wide")
+    
+    # Clean injection using standard text replacements to avoid structural UI template breaks
+    st.markdown("""
     <style>
-        .stApp, [data-testid="stAppViewContainer"], [data-testid="stSidebar"] {{
-            background-color: {CONFIG['bg_color']} !important;
-            color: {CONFIG['text_color']} !important;
+        .stApp, [data-testid="stAppViewContainer"], [data-testid="stSidebar"] {
+            background-color: #0D0F12 !important;
+            color: #F3F4F6 !important;
             font-family: system-ui, -apple-system, sans-serif;
-        }}
+        }
         
-        h1, h2, h3, h4, h5, h6 {{
-            color: {CONFIG['text_color']} !important;
-            font-weight: 700 !important;
-        }}
+        h1, h2, h3, h4, h5, h6, p {
+            color: #F3F4F6 !important;
+        }
 
-        div[data-baseweb="select"] > div {{
-            border: 1px solid {CONFIG['border_color']} !important;
+        /* Deep contrast Dropdowns fix */
+        div[data-baseweb="select"] > div {
+            border: 1px solid #262B36 !important;
             border-radius: 12px !important;
-            background-color: {CONFIG['card_bg']} !important;
-        }}
-        div[data-baseweb="select"] span, div[data-baseweb="select"] div {{
-            color: {CONFIG['text_color']} !important;
-        }}
-        [data-testid="stWidgetLabel"] p {{
-            color: {CONFIG['text_muted']} !important;
+            background-color: #161920 !important;
+        }
+        div[data-baseweb="select"] span, div[data-baseweb="select"] div {
+            color: #F3F4F6 !important;
+        }
+        [data-testid="stWidgetLabel"] p {
+            color: #9CA3AF !important;
             font-size: 13px !important;
             font-weight: 600 !important;
-        }}
+        }
 
-        .stButton>button {{
-            background: linear-gradient(135deg, {CONFIG['accent_rose_gold']}, #AA7C11) !important;
+        /* Gold Gradient Buttons */
+        .stButton>button {
+            background: linear-gradient(135deg, #D4AF37, #AA7C11) !important;
             color: #0D0F12 !important;
             border-radius: 25px !important;
             border: none !important;
@@ -169,20 +158,21 @@ def apply_premium_styles():
             font-size: 13px !important;
             font-weight: 700 !important;
             text-transform: uppercase;
+            letter-spacing: 0.05em;
             transition: all 0.2s ease-in-out !important;
-        }}
-        .stButton>button:hover {{
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(212, 175, 55, 0.35) !important;
+        }
+        .stButton>button:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4) !important;
             color: #0D0F12 !important;
-        }}
+        }
         
-        .stSlider [role="slider"] {{ background-color: {CONFIG['accent_rose_gold']} !important; }}
-        [data-testid="stExpander"] {{
-            background-color: {CONFIG['card_bg']} !important;
-            border: 1px solid {CONFIG['border_color']} !important;
+        .stSlider [role="slider"] { background-color: #D4AF37 !important; }
+        [data-testid="stExpander"] {
+            background-color: #161920 !important;
+            border: 1px solid #262B36 !important;
             border-radius: 14px !important;
-        }}
+        }
     </style>
     """, unsafe_allow_html=True)
 
@@ -202,27 +192,26 @@ def display_package_grid(package_list: List[Dict], prefix: str):
             love_icon = "❤️ Loved" if is_loved else "🤍 Love"
             
             st.markdown(f"""
-            <div style="border: 1px solid {CONFIG['border_color']}; border-radius: 20px; padding: 20px; 
-                 background: {CONFIG['card_bg']}; display: flex; flex-direction: column; 
+            <div style="border: 1px solid #262B36; border-radius: 20px; padding: 20px; 
+                 background: #161920; display: flex; flex-direction: column; 
                  justify-content: space-between; height: 320px; margin-bottom: 10px;
                  box-shadow: 0 10px 25px rgba(0,0,0,0.3);">
                 <div>
-                    <span style="background: rgba(214,175,55,0.1); color: {CONFIG['accent_rose_gold']}; font-size: 10px; font-weight: 700; padding: 4px 10px; border-radius: 20px; text-transform: uppercase;">
+                    <span style="background: rgba(214,175,55,0.1); color: #D4AF37; font-size: 10px; font-weight: 700; padding: 4px 10px; border-radius: 20px; text-transform: uppercase;">
                         {item['type']}
                     </span>
-                    <h3 style="margin-top: 14px; margin-bottom: 4px; font-size: 17px; line-height: 1.2;">{item['name']}</h3>
-                    <div style="font-size:11px; color: {CONFIG['text_muted']}; margin-bottom: 8px;">📏 {item['length']} • ✋ {item['hand']}</div>
+                    <h3 style="margin-top: 14px; margin-bottom: 4px; font-size: 17px; line-height: 1.2; color: #FFFFFF;">{item['name']}</h3>
+                    <div style="font-size:11px; color: #9CA3AF; margin-bottom: 8px;">📏 {item['length']} • ✋ {item['hand']}</div>
                     <p style="color: #D1D5DB; font-size: 12.5px; overflow-y: auto; max-height: 90px; line-height: 1.4;">
                         {item['description']}
                     </p>
                 </div>
-                <div style="border-top: 1px solid {CONFIG['border_color']}; padding-top: 10px; font-weight: 800; color: {CONFIG['accent_rose_gold']}; font-size: 15px;">
+                <div style="border-top: 1px solid #262B36; padding-top: 10px; font-weight: 800; color: #D4AF37; font-size: 15px;">
                     {item['price']} BDT
                 </div>
             </div>
             """, unsafe_allow_html=True)
             
-            # Interactive Action Triggers
             btn_col1, btn_col2 = st.columns([5, 4])
             with btn_col1:
                 if st.button("📖 Details", key=f"det_{prefix}_{idx}_{item['name']}", use_container_width=True):
@@ -253,7 +242,7 @@ def main():
     faq_handler = FAQHandler(faq_data)
     agentic_ai = AgenticAI(api_key=api_key, context={"faq": faq_data, "personal": personal_data})
 
-    # --- ROUTE A: DEEP-DIVE DEDICATED VIEW SCREEN ---
+    # --- ROUTE A: DEEP-DIVE PACKAGE SCREEN ---
     if st.session_state.selected_package:
         pkg = st.session_state.selected_package
         
@@ -265,14 +254,14 @@ def main():
         col1, col2 = st.columns([1, 2])
         with col1:
             st.markdown(f"""
-            <div style="border: 2px solid {CONFIG['accent_rose_gold']}; border-radius: 20px; padding: 40px; 
-                 background: {CONFIG['card_bg']}; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+            <div style="border: 2px solid #D4AF37; border-radius: 20px; padding: 40px; 
+                 background: #161920; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
                 <div style="font-size: 60px; margin-bottom: 10px;">🌿</div>
-                <span style="background: rgba(214,175,55,0.1); color: {CONFIG['accent_rose_gold']}; font-size: 12px; font-weight: 700; padding: 6px 14px; border-radius: 20px; text-transform: uppercase;">
+                <span style="background: rgba(214,175,55,0.1); color: #D4AF37; font-size: 12px; font-weight: 700; padding: 6px 14px; border-radius: 20px; text-transform: uppercase;">
                     {pkg['type']}
                 </span>
                 <h2 style="margin-top: 20px; color: white;">{pkg['name']}</h2>
-                <h1 style="color: {CONFIG['accent_rose_gold']}; margin-top: 10px;">{pkg['price']} BDT</h1>
+                <h1 style="color: #D4AF37; margin-top: 10px;">{pkg['price']} BDT</h1>
             </div>
             """, unsafe_allow_html=True)
             
@@ -293,31 +282,27 @@ def main():
                 "[✉️ Direct Mail Inbox](mailto:rafiyashennaart@gmail.com)"
             )
             
-    # --- ROUTE B: MAIN MARKETPLACE & CONCIERGE HUD ---
+    # --- ROUTE B: MAIN MARKETPLACE HOME ---
     else:
-        # Header Dynamic Social Identity
-        st.markdown(f"""
+        # Header Instagram Profile Badge
+        st.markdown("""
         <div style="text-align: center; margin-top: 15px; margin-bottom: 25px;">
             <div style="display: inline-block; width: 90px; height: 90px; border-radius: 50%; background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); padding: 3px;">
                 <div style="width: 100%; height: 100%; border-radius: 50%; background: #161920; display: flex; align-items: center; justify-content: center; font-size: 36px;">🌿</div>
             </div>
-            <h1 style="font-size: 2.3rem; margin-top: 10px; margin-bottom: 2px;">Rafiya's Henna Art</h1>
-            <p style="color: {CONFIG['accent_rose_gold']}; font-weight: 600; margin-top:0;">@rafiyas_henna_art</p>
+            <h1 style="font-size: 2.3rem; margin-top: 10px; margin-bottom: 2px; color: white;">Rafiya's Henna Art</h1>
+            <p style="color: #D4AF37; font-weight: 600; margin-top:0;">@rafiyas_henna_art</p>
         </div>
         """, unsafe_allow_html=True)
 
-        # ---------------------------
-        # Section 1: The Favorites Vault Shelf
-        # ---------------------------
+        # 1. Favorites Vault Shelf
         if st.session_state.favorites:
             st.markdown(f"## ❤️ Your Saved Favorites Vault ({len(st.session_state.favorites)})")
             saved_items = [p for p in packages if p['name'] in st.session_state.favorites]
             display_package_grid(saved_items, prefix="vault")
             st.markdown("---")
 
-        # ---------------------------
-        # Section 2: Lookbook Catalog Filter Engines
-        # ---------------------------
+        # 2. Lookbook Catalog Filter Engines
         st.markdown("## 📦 Curated Portfolios Collection")
         
         col1, col2, col3, col4, col5 = st.columns([1, 1, 1, 1, 2])
@@ -356,29 +341,27 @@ def main():
         display_package_grid(final_packages, prefix="catalog")
         st.markdown("---")
 
-        # ---------------------------
-        # Section 3: AI Assistant Lounge (Henna Whisperer)
-        # ---------------------------
+        # 3. AI Assistant Lounge (Henna Whisperer)
         st.markdown(f"## 💬 DM Assistant: **Henna Whisperer**")
         
         for chat in st.session_state.chat_history:
             with st.chat_message("user"):
-                st.markdown(f"""<div style="background:{CONFIG['user_msg_bg']}; color:{CONFIG['text_color']}; padding:14px; border-radius:16px 16px 2px 16px; font-size:15px; border: 1px solid #2e4d30; max-width: 85%; margin-left: auto;">{chat['user']}</div>""", unsafe_allow_html=True)
+                st.markdown(f"""<div style="background:#1F3520; color:#F3F4F6; padding:14px; border-radius:16px 16px 2px 16px; font-size:15px; border: 1px solid #2e4d30; max-width: 85%; margin-left: auto;">{chat['user']}</div>""", unsafe_allow_html=True)
             with st.chat_message("assistant"):
-                st.markdown(f"""<div style="background:{CONFIG['bot_msg_bg']}; color:{CONFIG['text_color']}; padding:14px; border-radius:16px 16px 16px 2px; font-size:15px; border: 1px solid #4a3b20; max-width: 85%;"><b>Henna Whisperer:</b><br>{chat['bot']}</div>""", unsafe_allow_html=True)
+                st.markdown(f"""<div style="background:#231E16; color:#F3F4F6; padding:14px; border-radius:16px 16px 16px 2px; font-size:15px; border: 1px solid #4a3b20; max-width: 85%;"><b>Henna Whisperer:</b><br>{chat['bot']}</div>""", unsafe_allow_html=True)
 
         user_query = st.chat_input("Message Henna Whisperer about portfolio sets, care techniques or styles...")
 
         if user_query:
             with st.chat_message("user"):
-                st.markdown(f"""<div style="background:{CONFIG['user_msg_bg']}; padding:14px; border-radius:16px 16px 2px 16px;">{user_query}</div>""", unsafe_allow_html=True)
+                st.markdown(f"""<div style="background:#1F3520; padding:14px; border-radius:16px 16px 2px 16px;">{user_query}</div>""", unsafe_allow_html=True)
             
             with st.spinner("Henna Whisperer is typing..."):
                 faq_q, faq_a = faq_handler.find_similar_question(user_query)
                 reply = f"🔍 **FAQ Match:** *{faq_q}*\n\n{faq_a}" if faq_a else agentic_ai.generate_response(user_query)
             
             with st.chat_message("assistant"):
-                st.markdown(f"""<div style="background:{CONFIG['bot_msg_bg']}; padding:14px; border-radius:16px 16px 16px 2px;">{reply}</div>""", unsafe_allow_html=True)
+                st.markdown(f"""<div style="background:#231E16; padding:14px; border-radius:16px 16px 16px 2px;">{reply}</div>""", unsafe_allow_html=True)
             
             st.session_state.chat_history.append({"user": user_query, "bot": reply})
             st.rerun()
@@ -391,9 +374,7 @@ def main():
 
         st.markdown("---")
 
-        # ---------------------------
-        # Section 4: Help Center Knowledge Base
-        # ---------------------------
+        # 4. Help Center Knowledge Base
         st.markdown("## 💡 Knowledge Base Help Center")
         if faq_data:
             categories = sorted(list(set(faq['category'] for faq in faq_data)))
@@ -403,7 +384,7 @@ def main():
                 for faq in cat_faqs:
                     with st.expander(f"✨ {faq['question']}", expanded=False):
                         st.markdown(f"""
-                        <div style="background-color: #1C202A; padding: 16px; border-left: 3px solid {CONFIG['accent_rose_gold']}; 
+                        <div style="background-color: #1C202A; padding: 16px; border-left: 3px solid #D4AF37; 
                                     border-radius: 4px; color: #E5E7EB; font-size: 14.5px; line-height: 1.6;">
                             {faq['answer']}
                         </div>
