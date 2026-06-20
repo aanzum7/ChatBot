@@ -20,12 +20,12 @@ if "selected_package" not in st.session_state:
 if "favorites" not in st.session_state or not isinstance(st.session_state.favorites, set):
     st.session_state.favorites = set()
 
-# Initialize chat history with a beautifully framed first DM from the Artist
+# Initialize chat history with minimal, direct intro greeting
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = [
         {
             "user": None,
-            "bot": "Assalamu Alaikum! 🌿✨ Welcome to my creative sanctuary. I am **Rafiya**, your friendly henna artist. Whether you are seeking a royal bridal transformation, shopping for our handcrafted organic cones, or looking to master the craft in my training courses, I am here to design your vision. <br><br>Tell me what you are dreaming of creating today—in English, Bangla, or Banglish! 💬"
+            "bot": "Assalamu Alaikum! 🌿✨ I am **Rafiya**. Ask me anything about my portfolios, organic products, or design sessions. I'm here to help! 💬"
         }
     ]
 
@@ -43,9 +43,9 @@ class AgenticAI:
         self.model = genai.GenerativeModel(
             model_name="gemini-2.5-flash-lite",
             generation_config={
-                "temperature": 0.1,
-                "top_p": 0.9,
-                "max_output_tokens": 512,
+                "temperature": 0.2,
+                "top_p": 0.85,
+                "max_output_tokens": 256,
             },
         )
         self.chat_session = self.model.start_chat()
@@ -62,35 +62,18 @@ class AgenticAI:
                 f"FAQ Context: {self.context['faq']}\n"
                 f"Personal Context: {self.context['personal']}\n"
                 f"User Input: {user_input}\n\n"
-                "You are Rafiya, a talented and friendly henna artist 🌿✨. "
-                "Respond naturally and warmly, mirroring the user's tone. "
-                "Understand queries in Bangla, English, or Banglish, and reply in the same language the user asks in.\n\n"
-                "Use the following info dynamically to respond in a **friendly, concise, summary style**:\n"
-                "1️⃣ FAQ: Provide answers from the FAQ if relevant.\n"
-                "2️⃣ Bridal and Non-Bridal Henna Packages:\n"
-                "   - Show short lists with prices and descriptions.\n"
-                "   - Always link to full details: 🌿 [Packages](https://rafiyashennaart.streamlit.app/Packages)\n"
-                "   - Guide users on how to **book appointments**.\n"
-                "3️⃣ Organic Henna & Products:\n"
-                "   - Mention availability and details for each product.\n"
-                "   - Link for full details: 🌿 [Products](https://sites.google.com/view/rafiyashennaart/products)\n"
-                "   - Guide users on how to **purchase products**.\n"
-                "4️⃣ Courses & Training:\n"
-                "   - Include highlights, learning outcomes, and benefits dynamically.\n"
-                "   - Link for full details: 🌿 [Courses & Training](https://sites.google.com/view/rafiyashennaart/courses-training)\n"
-                "   - Guide users on how to **enroll**.\n\n"
-                "Always keep responses:\n"
-                "- Friendly, concise, engaging, and emoji-rich 🌿✨\n"
-                "- Include clickable contact options for any action:\n"
-                "💬 [Messenger](https://m.me/Rafiya.HennaArt) | "
-                "📱 [WhatsApp](https://wa.me/8801323278403) | "
-                "✉️ [Email](mailto:rafiyashennaart@gmail.com)\n\n"
-                "- Include links to recent work:\n"
-                "📘 [Facebook](https://www.facebook.com/share/1CFfRyJ1wY/) | "
-                "📸 [Instagram](https://www.instagram.com/rafiyas_henna_art) | "
-                "▶️ [YouTube](https://youtube.com/@RafiyasHennaArt)\n\n"
-                "Guide the user naturally toward **booking, purchasing, enrolling, or viewing packages**.\n"
-                "If a query is not listed in the FAQ or data, politely suggest the closest relevant option with links and action buttons."
+                "You are Rafiya, a friendly henna artist 🌿✨. "
+                "Respond naturally, matching the user's tone. "
+                "Reply instantly in whatever language the query uses (Bangla, English, or Banglish).\n\n"
+                "CRITICAL: Keep your response short, precise, and directly to the point. No fluff or lengthy introductions. "
+                "Dynamically provide accurate summaries using this data context:\n"
+                "1️⃣ FAQ details.\n"
+                "2️⃣ Bridal/Non-Bridal Packages: Show quick rates & link to 🌿 [Packages](https://rafiyashennaart.streamlit.app/Packages)\n"
+                "3️⃣ Products: List availability & link to 🌿 [Products](https://sites.google.com/view/rafiyashennaart/products)\n"
+                "4️⃣ Training: Provide details & link to 🌿 [Courses](https://sites.google.com/view/rafiyashennaart/courses-training)\n\n"
+                "Always drop short links to secure direct bookings or questions:\n"
+                "💬 [Messenger](https://m.me/Rafiya.HennaArt) | 📱 [WhatsApp](https://wa.me/8801323278403)\n\n"
+                "If information isn't available in context, provide the closest alternative and guide them to message directly."
             )
 
             response = self.chat_session.send_message(prompt)
@@ -101,7 +84,7 @@ class AgenticAI:
                 retry = self.chat_session.send_message(prompt)
                 if retry and hasattr(retry, "text") and retry.text:
                     return retry.text.strip()
-                return "🤖 Sorry, I couldn’t generate a response."
+                return "🤖 Couldn’t process statement. Drop a direct note instead!"
         except Exception as e:
             logger.error(f"Error generating response: {e}")
             return f"⚠️ Error: {e}"
@@ -130,21 +113,20 @@ def apply_premium_styles():
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Marcellus&family=Montserrat:wght@400;500;600&display=swap');
 
-        /* Deep Luxurious Canvas Background */
+        /* Canvas Setup */
         .stApp, [data-testid="stAppViewContainer"], [data-testid="stSidebar"] {
             background: radial-gradient(circle at top right, #161A24, #0A0D14) !important;
             color: #E2E8F0 !important;
             font-family: 'Montserrat', sans-serif;
         }
         
-        /* Editorial Typography */
         h1, h2, h3, h4 {
             font-family: 'Marcellus', serif !important;
             color: #F8FAFC !important;
             font-weight: 400 !important;
         }
 
-        /* Deep contrast Dropdowns */
+        /* Input Controls */
         div[data-baseweb="select"] > div {
             border: 1px solid #2C323F !important;
             border-radius: 8px !important;
@@ -159,14 +141,13 @@ def apply_premium_styles():
             font-weight: 500 !important;
         }
 
-        /* Elegant Champagne Minimalist Buttons */
+        /* Buttons */
         .stButton>button {
             background: transparent !important;
             color: #C5A059 !important;
             border: 1px solid #C5A059 !important;
             border-radius: 4px !important;
             padding: 8px 20px !important;
-            font-family: 'Montserrat', sans-serif;
             font-size: 12px !important;
             font-weight: 600 !important;
             text-transform: uppercase;
@@ -187,7 +168,7 @@ def apply_premium_styles():
             border-radius: 8px !important;
         }
         
-        /* Premium Atelier Navigation Tabs */
+        /* Interactive Atelier Tabs */
         button[data-baseweb="tab"] {
             color: #64748B !important;
             font-family: 'Marcellus', serif !important;
@@ -205,7 +186,7 @@ def apply_premium_styles():
 # Visual Component Layout Helpers
 # ---------------------------
 def display_package_grid(package_list: List[Dict], prefix: str):
-    """Displays a responsive portfolio grid with distinct styling for Bridal vs Non-Bridal collections."""
+    """Displays a responsive portfolio grid with variations separating Bridal vs Non-Bridal styling aesthetics."""
     for idx, item in enumerate(package_list):
         if idx % 4 == 0:
             row_items = package_list[idx:idx+4]
@@ -216,7 +197,6 @@ def display_package_grid(package_list: List[Dict], prefix: str):
             is_loved = item['name'] in st.session_state.favorites
             love_icon = "❤️ Saved" if is_loved else "🤍 Save Look"
             
-            # Determine card aura style based on Bridal vs Daily classification
             is_bridal = "bridal" in item.get('type', '').lower()
             if is_bridal:
                 card_style = """
@@ -237,18 +217,18 @@ def display_package_grid(package_list: List[Dict], prefix: str):
             
             st.markdown(f"""
             <div style="border-radius: 12px; padding: 22px; display: flex; flex-direction: column; 
-                 justify-content: space-between; height: 340px; margin-bottom: 12px; transition: all 0.3s ease; {card_style}">
+                 justify-content: space-between; height: 340px; margin-bottom: 12px; {card_style}">
                 <div>
                     <span style="font-size: 9px; font-weight: 600; padding: 4px 10px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.05em; {badge_style}">
                         {item['type']}
                     </span>
                     <h3 style="margin-top: 16px; margin-bottom: 4px; font-size: 18px; line-height: 1.3; color: {title_color};">{item['name']}</h3>
-                    <div style="font-size:11px; color: #64748B; margin-bottom: 12px; font-weight: 500;">📐 {item['length']} • ✋ {item['hand']}</div>
-                    <p style="color: #94A3B8; font-size: 13px; overflow-y: auto; max-height: 95px; line-height: 1.5; font-weight: 400;">
+                    <div style="font-size:11px; color: #64748B; margin-bottom: 12px;">📐 {item['length']} • ✋ {item['hand']}</div>
+                    <p style="color: #94A3B8; font-size: 13px; overflow-y: auto; max-height: 95px; line-height: 1.5;">
                         {item['description']}
                     </p>
                 </div>
-                <div style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 12px; font-family: 'Marcellus', serif; font-size: 16px; color: #C5A059; letter-spacing: 0.05em;">
+                <div style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 12px; font-family: 'Marcellus', serif; font-size: 16px; color: #C5A059;">
                     {item['price']} BDT
                 </div>
             </div>
@@ -275,7 +255,6 @@ def display_package_grid(package_list: List[Dict], prefix: str):
 def main():
     apply_premium_styles()
 
-    # Data Pull Configuration
     faq_data = st.secrets.get("faq", {}).get("questions", [])
     personal_data = st.secrets.get("personal", {}).get("data", {})
     api_key = st.secrets.get("genai", {}).get("api_key", "")
@@ -302,7 +281,7 @@ def main():
             <div style="border: 1px solid {border_clr}; border-radius: 12px; padding: 40px; 
                  background: #121620; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.5);">
                 <div style="font-size: 50px; margin-bottom: 15px;">🌿</div>
-                <span style="background: rgba(197,160,89,0.1); color: #C5A059; font-size: 11px; font-weight: 600; padding: 6px 14px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.1em;">
+                <span style="background: rgba(197,160,89,0.1); color: #C5A059; font-size: 11px; font-weight: 600; padding: 6px 14px; border-radius: 4px; text-transform: uppercase;">
                     {pkg['type']}
                 </span>
                 <h2 style="margin-top: 24px; color: white; font-size: 28px;">{pkg['name']}</h2>
@@ -329,57 +308,65 @@ def main():
             
     # --- ROUTE B: ARTIST PORTAL INTERFACE ---
     else:
-        # Luxury Branding Banner
+        # Minimalist Luxury Header Banner
         st.markdown("""
         <div style="text-align: center; margin-top: 20px; margin-bottom: 35px;">
-            <div style="display: inline-block; width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #C5A059, #8D6E31); padding: 1px; margin-bottom: 12px;">
-                <div style="width: 100%; height: 100%; border-radius: 50%; background: #0A0D14; display: flex; align-items: center; justify-content: center; font-size: 32px;">🌿</div>
+            <div style="display: inline-block; width: 70px; height: 70px; border-radius: 50%; background: linear-gradient(135deg, #C5A059, #8D6E31); padding: 1px; margin-bottom: 10px;">
+                <div style="width: 100%; height: 100%; border-radius: 50%; background: #0A0D14; display: flex; align-items: center; justify-content: center; font-size: 28px;">🌿</div>
             </div>
-            <h1 style="font-size: 2.8rem; margin: 0; letter-spacing: 0.05em; color: #FFFFFF;">RAFIYA HENNA ART</h1>
-            <p style="color: #C5A059; font-weight: 500; font-size: 12px; letter-spacing: 0.4em; text-transform: uppercase; margin-top: 6px; margin-bottom: 0;">Atelier & Design Studio</p>
+            <h1 style="font-size: 2.6rem; margin: 0; letter-spacing: 0.05em; color: #FFFFFF;">RAFIYA HENNA ART</h1>
+            <p style="color: #C5A059; font-weight: 500; font-size: 11px; letter-spacing: 0.35em; text-transform: uppercase; margin-top: 4px; margin-bottom: 0;">Atelier & Design Studio</p>
         </div>
         """, unsafe_allow_html=True)
 
-        # Tabs Layout Sequence
+        # Updated Module Arrangement Tab Layout
         tab_chat, tab_packages, tab_faq = st.tabs([
-            "💬 Atelier Consult", 
+            "💬 Private Studio Lounge", 
             "🎨 Curated Collections", 
             "💡 Studio Knowledge Base"
         ])
 
         # --- TAB 1: ARTIST CHAT (Lead Interface) ---
         with tab_chat:
-            st.markdown(f"### 🌿 Private Studio Lounge")
-            st.write("Inquire dynamically about custom compositions, bridal structural layout adjustments, or stain preservation details.")
-            st.markdown("<br>", unsafe_allow_html=True)
+            st.markdown(f"### 🌿 Automated Assistant")
+            st.markdown("<p style='font-size:13px; color:#64748B; margin-top:-10px;'>Inquire instantly about designs, structural compositions, or preservation details.</p>", unsafe_allow_html=True)
             
             for chat in st.session_state.chat_history:
                 if chat['user']:
                     with st.chat_message("user"):
-                        st.markdown(f"""<div style="background:#1E293B; color:#F1F5F9; padding:14px; border-radius:12px; font-size:14.5px; border: 1px solid #334155; max-width: 80%; margin-left: auto;">{chat['user']}</div>""", unsafe_allow_html=True)
+                        st.markdown(f"""<div style="background:#1E293B; color:#F1F5F9; padding:12px 16px; border-radius:12px; font-size:14.5px; border: 1px solid #334155; max-width: 80%; margin-left: auto;">{chat['user']}</div>""", unsafe_allow_html=True)
                 
                 with st.chat_message("assistant"):
-                    st.markdown(f"""<div style="background:#121620; color:#E2E8F0; padding:14px; border-radius:12px; font-size:14.5px; border: 1px solid #C5A059; max-width: 85%;"><b>Henna Whisperer:</b><br>{chat['bot']}</div>""", unsafe_allow_html=True)
+                    st.markdown(f"""<div style="background:#121620; color:#E2E8F0; padding:12px 16px; border-radius:12px; font-size:14.5px; border: 1px solid #C5A059; max-width: 85%;"><b>Henna Whisperer:</b><br>{chat['bot']}</div>""", unsafe_allow_html=True)
 
-            user_query = st.chat_input("Ask Henna Whisperer about custom looks, product preservation, or design techniques...")
+            user_query = st.chat_input("Message assistant for direct pricing, design structures, or tips...")
 
             if user_query:
                 with st.chat_message("user"):
-                    st.markdown(f"""<div style="background:#1E293B; padding:14px; border-radius:12px;">{user_query}</div>""", unsafe_allow_html=True)
+                    st.markdown(f"""<div style="background:#1E293B; padding:12px 16px; border-radius:12px;">{user_query}</div>""", unsafe_allow_html=True)
                 
-                with st.spinner("Weaving response..."):
+                with st.spinner("Weaving insight..."):
                     faq_q, faq_a = faq_handler.find_similar_question(user_query)
-                    reply = f"🔍 **Studio FAQ Match:** *{faq_q}*\n\n{faq_a}" if faq_a else agentic_ai.generate_response(user_query)
+                    reply = f"🔍 **Studio FAQ:** *{faq_q}*\n\n{faq_a}" if faq_a else agentic_ai.generate_response(user_query)
                 
                 with st.chat_message("assistant"):
-                    st.markdown(f"""<div style="background:#121620; padding:14px; border-radius:12px; border: 1px solid #C5A059;">{reply}</div>""", unsafe_allow_html=True)
+                    st.markdown(f"""<div style="background:#121620; padding:12px 16px; border-radius:12px; border: 1px solid #C5A059;">{reply}</div>""", unsafe_allow_html=True)
                 
                 st.session_state.chat_history.append({"user": user_query, "bot": reply})
                 st.rerun()
 
+            # Smart Production Notice & Controls Container
+            st.markdown("""
+            <div style='background: rgba(148,163,184,0.04); border-radius: 8px; padding: 12px 16px; margin-top: 20px; border: 1px dashed rgba(255,255,255,0.08);'>
+                <p style='margin:0; font-size:11.5px; color:#64748B; line-height:1.4;'>
+                    ⚠️ <b>Studio Note:</b> Automated details may contain minor variance and are optimized to provide immediate clarity when the artist is away. Please confirm pricing and active slot scheduling directly via personal text link.
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
+
             if len(st.session_state.chat_history) > 1:
                 st.markdown("<br>", unsafe_allow_html=True)
-                if st.button("🗑️ Reset Consult Canvas", use_container_width=True):
+                if st.button("🗑️ Reset Lounge Workspace", use_container_width=True):
                     del st.session_state.chat_history[1:]
                     agentic_ai.configure_ai()
                     st.rerun()
@@ -411,8 +398,8 @@ def main():
             
             with col4:
                 sides = sorted(list(set(p['side'] for p in filtered)))
-                sel_side = st.selectbox("Surface Alignment", ["All"] + sides)
-            filtered = [p for p in filtered if sel_side == "All" or p['side'] == sel_side]
+                sel_surface = st.selectbox("Surface Alignment", ["All"] + sides)
+            filtered = [p for p in filtered if sel_surface == "All" or p['side'] == sel_surface]
             
             with col5:
                 prices = [p['price'] for p in filtered]
