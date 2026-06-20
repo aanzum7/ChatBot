@@ -30,6 +30,18 @@ if "chat_history" not in st.session_state:
     ]
 
 # ---------------------------
+# Optimized Data Loading (Cache)
+# ---------------------------
+@st.cache_data(ttl=600)
+def load_studio_secrets():
+    """Caches structural configurations to minimize secrets overhead."""
+    faq_data = st.secrets.get("faq", {}).get("questions", [])
+    personal_data = st.secrets.get("personal", {}).get("data", {})
+    api_key = st.secrets.get("genai", {}).get("api_key", "")
+    packages = personal_data.get("packages", [])
+    return faq_data, personal_data, api_key, packages
+
+# ---------------------------
 # Core Logic Engines
 # ---------------------------
 class AgenticAI:
@@ -92,15 +104,27 @@ class AgenticAI:
 class FAQHandler:
     def __init__(self, faq_list: List[Dict]):
         self.faq_list = faq_list
+        # In-memory execution map cache for faster evaluation lookup
+        self.faq_cache: Dict[str, Tuple[str, str]] = {}
 
     def find_similar_question(self, user_input: str, threshold: float = 0.65) -> Tuple[Optional[str], Optional[str]]:
+        cleaned_input = user_input.strip().lower()
+        
+        # Immediate memory check return to bypass execution cycles
+        if cleaned_input in self.faq_cache:
+            return self.faq_cache[cleaned_input]
+            
         best_q, best_a, highest = None, None, 0
         for faq in self.faq_list:
-            sim = SequenceMatcher(None, user_input.lower(), faq['question'].lower()).ratio()
+            sim = SequenceMatcher(None, cleaned_input, faq['question'].lower()).ratio()
             if sim > highest:
                 highest, best_q, best_a = sim, faq['question'], faq['answer']
+                
         if highest >= threshold:
+            # Commit tracking coordinates into data layout
+            self.faq_cache[cleaned_input] = (best_q, best_a)
             return best_q, best_a
+            
         return None, None
 
 # ---------------------------
@@ -189,7 +213,6 @@ def display_package_grid(package_list: List[Dict], prefix: str):
     """Displays a responsive portfolio grid with variations separating Bridal vs Non-Bridal styling aesthetics."""
     for idx, item in enumerate(package_list):
         if idx % 4 == 0:
-            row_items = package_list[idx:idx+4]
             cols = st.columns(4)
             
         col = cols[idx % 4]
@@ -255,12 +278,14 @@ def display_package_grid(package_list: List[Dict], prefix: str):
 def main():
     apply_premium_styles()
 
-    faq_data = st.secrets.get("faq", {}).get("questions", [])
-    personal_data = st.secrets.get("personal", {}).get("data", {})
-    api_key = st.secrets.get("genai", {}).get("api_key", "")
-    packages = personal_data.get("packages", [])
+    # Highly optimized data cache consumption layer
+    faq_data, personal_data, api_key, packages = load_studio_secrets()
 
-    faq_handler = FAQHandler(faq_data)
+    # Re-initialization bound maps using session tracking loops to prevent thread loss
+    if "faq_handler" not in st.session_state:
+        st.session_state.faq_handler = FAQHandler(faq_data)
+        
+    faq_handler = st.session_state.faq_handler
     agentic_ai = AgenticAI(api_key=api_key, context={"faq": faq_data, "personal": personal_data})
 
     # --- ROUTE A: DEEP-DIVE ATELIER SCREEN ---
@@ -308,7 +333,6 @@ def main():
             
     # --- ROUTE B: ARTIST PORTAL INTERFACE ---
     else:
-        # Minimalist Luxury Header Banner
         st.markdown("""
         <div style="text-align: center; margin-top: 20px; margin-bottom: 35px;">
             <div style="display: inline-block; width: 70px; height: 70px; border-radius: 50%; background: linear-gradient(135deg, #C5A059, #8D6E31); padding: 1px; margin-bottom: 10px;">
@@ -319,7 +343,6 @@ def main():
         </div>
         """, unsafe_allow_html=True)
 
-        # Updated Module Arrangement Tab Layout
         tab_chat, tab_packages, tab_faq = st.tabs([
             "💬 Private Studio Lounge", 
             "🎨 Curated Collections", 
@@ -346,6 +369,7 @@ def main():
                     st.markdown(f"""<div style="background:#1E293B; padding:12px 16px; border-radius:12px;">{user_query}</div>""", unsafe_allow_html=True)
                 
                 with st.spinner("Weaving insight..."):
+                    # Check cached/stored FAQs before engaging LLM token processing
                     faq_q, faq_a = faq_handler.find_similar_question(user_query)
                     reply = f"🔍 **Studio FAQ:** *{faq_q}*\n\n{faq_a}" if faq_a else agentic_ai.generate_response(user_query)
                 
@@ -355,7 +379,6 @@ def main():
                 st.session_state.chat_history.append({"user": user_query, "bot": reply})
                 st.rerun()
 
-            # Smart Production Notice & Controls Container
             st.markdown("""
             <div style='background: rgba(148,163,184,0.04); border-radius: 8px; padding: 12px 16px; margin-top: 20px; border: 1px dashed rgba(255,255,255,0.08);'>
                 <p style='margin:0; font-size:11.5px; color:#64748B; line-height:1.4;'>
