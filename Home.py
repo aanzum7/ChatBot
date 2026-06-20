@@ -30,14 +30,10 @@ if "chat_history" not in st.session_state:
     ]
 
 # ---------------------------
-# Optimized Data Loading (Cache)
-# ---------------------------
-@st.cache_data(ttl=600)
-# ---------------------------
 # Data Loading (Secrets Access)
 # ---------------------------
 def load_studio_secrets():
-    """Fetches structural configurations directly from Streamlit secrets."""
+    """Fetches structural configurations directly from Streamlit secrets without pickling errors."""
     faq_data = st.secrets.get("faq", {}).get("questions", [])
     personal_data = st.secrets.get("personal", {}).get("data", {})
     api_key = st.secrets.get("genai", {}).get("api_key", "")
@@ -281,10 +277,9 @@ def display_package_grid(package_list: List[Dict], prefix: str):
 def main():
     apply_premium_styles()
 
-    # Highly optimized data cache consumption layer
+    # Dynamic loading safely decoupled from data cache pickling limitations
     faq_data, personal_data, api_key, packages = load_studio_secrets()
 
-    # Re-initialization bound maps using session tracking loops to prevent thread loss
     if "faq_handler" not in st.session_state:
         st.session_state.faq_handler = FAQHandler(faq_data)
         
@@ -372,7 +367,6 @@ def main():
                     st.markdown(f"""<div style="background:#1E293B; padding:12px 16px; border-radius:12px;">{user_query}</div>""", unsafe_allow_html=True)
                 
                 with st.spinner("Weaving insight..."):
-                    # Check cached/stored FAQs before engaging LLM token processing
                     faq_q, faq_a = faq_handler.find_similar_question(user_query)
                     reply = f"🔍 **Studio FAQ:** *{faq_q}*\n\n{faq_a}" if faq_a else agentic_ai.generate_response(user_query)
                 
