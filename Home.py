@@ -20,12 +20,12 @@ if "selected_package" not in st.session_state:
 if "favorites" not in st.session_state or not isinstance(st.session_state.favorites, set):
     st.session_state.favorites = set()
 
-# Initialize chat history with a warm first DM from Henna Whisperer
+# Initialize chat history with a beautifully framed first DM from the Artist
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = [
         {
             "user": None,
-            "bot": "Assalamu Alaikum! 🌿✨ Welcome to my creative sanctuary! I am **Rafiya**, your friendly henna artist. Whether you are searching for the perfect package, shopping for organic cones, or looking to learn the art, I am here to guide you. <br><br>Tell me what you have in mind—in English, Bangla, or Banglish! 💬"
+            "bot": "Assalamu Alaikum! 🌿✨ Welcome to my creative sanctuary. I am **Rafiya**, your friendly henna artist. Whether you are seeking a royal bridal transformation, shopping for our handcrafted organic cones, or looking to master the craft in my training courses, I am here to design your vision. <br><br>Tell me what you are dreaming of creating today—in English, Bangla, or Banglish! 💬"
         }
     ]
 
@@ -128,66 +128,75 @@ def apply_premium_styles():
     
     st.markdown("""
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Marcellus&family=Montserrat:wght@400;500;600&display=swap');
+
+        /* Deep Luxurious Canvas Background */
         .stApp, [data-testid="stAppViewContainer"], [data-testid="stSidebar"] {
-            background-color: #0D0F12 !important;
-            color: #F3F4F6 !important;
-            font-family: system-ui, -apple-system, sans-serif;
+            background: radial-gradient(circle at top right, #161A24, #0A0D14) !important;
+            color: #E2E8F0 !important;
+            font-family: 'Montserrat', sans-serif;
         }
         
-        h1, h2, h3, h4, h5, h6, p {
-            color: #F3F4F6 !important;
+        /* Editorial Typography */
+        h1, h2, h3, h4 {
+            font-family: 'Marcellus', serif !important;
+            color: #F8FAFC !important;
+            font-weight: 400 !important;
         }
 
-        /* Deep contrast Dropdowns fix */
+        /* Deep contrast Dropdowns */
         div[data-baseweb="select"] > div {
-            border: 1px solid #262B36 !important;
-            border-radius: 12px !important;
-            background-color: #161920 !important;
+            border: 1px solid #2C323F !important;
+            border-radius: 8px !important;
+            background-color: #121620 !important;
         }
         div[data-baseweb="select"] span, div[data-baseweb="select"] div {
-            color: #F3F4F6 !important;
+            color: #E2E8F0 !important;
         }
         [data-testid="stWidgetLabel"] p {
-            color: #9CA3AF !important;
+            color: #94A3B8 !important;
             font-size: 13px !important;
-            font-weight: 600 !important;
+            font-weight: 500 !important;
         }
 
-        /* Gold Gradient Buttons */
+        /* Elegant Champagne Minimalist Buttons */
         .stButton>button {
-            background: linear-gradient(135deg, #D4AF37, #AA7C11) !important;
-            color: #0D0F12 !important;
-            border-radius: 25px !important;
-            border: none !important;
-            padding: 10px 22px !important;
-            font-size: 13px !important;
-            font-weight: 700 !important;
+            background: transparent !important;
+            color: #C5A059 !important;
+            border: 1px solid #C5A059 !important;
+            border-radius: 4px !important;
+            padding: 8px 20px !important;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 12px !important;
+            font-weight: 600 !important;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
-            transition: all 0.2s ease-in-out !important;
+            letter-spacing: 0.1em;
+            transition: all 0.3s ease !important;
         }
         .stButton>button:hover {
-            transform: translateY(-2px) !important;
-            box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4) !important;
-            color: #0D0F12 !important;
+            transform: translateY(-1px) !important;
+            background: #C5A059 !important;
+            color: #0A0D14 !important;
+            box-shadow: 0 4px 15px rgba(197, 160, 89, 0.2) !important;
         }
         
-        .stSlider [role="slider"] { background-color: #D4AF37 !important; }
+        .stSlider [role="slider"] { background-color: #C5A059 !important; }
         [data-testid="stExpander"] {
-            background-color: #161920 !important;
-            border: 1px solid #262B36 !important;
-            border-radius: 14px !important;
+            background-color: #121620 !important;
+            border: 1px solid #2C323F !important;
+            border-radius: 8px !important;
         }
-
-        /* Premium Tab Header Styling */
+        
+        /* Premium Atelier Navigation Tabs */
         button[data-baseweb="tab"] {
-            color: #9CA3AF !important;
+            color: #64748B !important;
+            font-family: 'Marcellus', serif !important;
             font-size: 16px !important;
-            font-weight: 600 !important;
+            letter-spacing: 0.05em;
         }
         button[aria-selected="true"] {
-            color: #D4AF37 !important;
-            border-bottom-color: #D4AF37 !important;
+            color: #C5A059 !important;
+            border-bottom-color: #C5A059 !important;
         }
     </style>
     """, unsafe_allow_html=True)
@@ -196,7 +205,7 @@ def apply_premium_styles():
 # Visual Component Layout Helpers
 # ---------------------------
 def display_package_grid(package_list: List[Dict], prefix: str):
-    """Displays a responsive 4-column portfolio matrix."""
+    """Displays a responsive portfolio grid with distinct styling for Bridal vs Non-Bridal collections."""
     for idx, item in enumerate(package_list):
         if idx % 4 == 0:
             row_items = package_list[idx:idx+4]
@@ -205,24 +214,41 @@ def display_package_grid(package_list: List[Dict], prefix: str):
         col = cols[idx % 4]
         with col:
             is_loved = item['name'] in st.session_state.favorites
-            love_icon = "❤️ Loved" if is_loved else "🤍 Love"
+            love_icon = "❤️ Saved" if is_loved else "🤍 Save Look"
+            
+            # Determine card aura style based on Bridal vs Daily classification
+            is_bridal = "bridal" in item.get('type', '').lower()
+            if is_bridal:
+                card_style = """
+                    border: 1px solid #C5A059; 
+                    background: linear-gradient(135deg, #181C26, #0A0D14);
+                    box-shadow: 0 10px 30px rgba(197, 160, 89, 0.08);
+                """
+                badge_style = "background: rgba(197, 160, 89, 0.15); color: #C5A059; border: 1px solid rgba(197, 160, 89, 0.3);"
+                title_color = "#F1E7D0"
+            else:
+                card_style = """
+                    border: 1px solid #2C323F; 
+                    background: #121620;
+                    box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+                """
+                badge_style = "background: rgba(148, 163, 184, 0.1); color: #94A3B8;"
+                title_color = "#FFFFFF"
             
             st.markdown(f"""
-            <div style="border: 1px solid #262B36; border-radius: 20px; padding: 20px; 
-                 background: #161920; display: flex; flex-direction: column; 
-                 justify-content: space-between; height: 320px; margin-bottom: 10px;
-                 box-shadow: 0 10px 25px rgba(0,0,0,0.3);">
+            <div style="border-radius: 12px; padding: 22px; display: flex; flex-direction: column; 
+                 justify-content: space-between; height: 340px; margin-bottom: 12px; transition: all 0.3s ease; {card_style}">
                 <div>
-                    <span style="background: rgba(214,175,55,0.1); color: #D4AF37; font-size: 10px; font-weight: 700; padding: 4px 10px; border-radius: 20px; text-transform: uppercase;">
+                    <span style="font-size: 9px; font-weight: 600; padding: 4px 10px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.05em; {badge_style}">
                         {item['type']}
                     </span>
-                    <h3 style="margin-top: 14px; margin-bottom: 4px; font-size: 17px; line-height: 1.2; color: #FFFFFF;">{item['name']}</h3>
-                    <div style="font-size:11px; color: #9CA3AF; margin-bottom: 8px;">📏 {item['length']} • ✋ {item['hand']}</div>
-                    <p style="color: #D1D5DB; font-size: 12.5px; overflow-y: auto; max-height: 90px; line-height: 1.4;">
+                    <h3 style="margin-top: 16px; margin-bottom: 4px; font-size: 18px; line-height: 1.3; color: {title_color};">{item['name']}</h3>
+                    <div style="font-size:11px; color: #64748B; margin-bottom: 12px; font-weight: 500;">📐 {item['length']} • ✋ {item['hand']}</div>
+                    <p style="color: #94A3B8; font-size: 13px; overflow-y: auto; max-height: 95px; line-height: 1.5; font-weight: 400;">
                         {item['description']}
                     </p>
                 </div>
-                <div style="border-top: 1px solid #262B36; padding-top: 10px; font-weight: 800; color: #D4AF37; font-size: 15px;">
+                <div style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 12px; font-family: 'Marcellus', serif; font-size: 16px; color: #C5A059; letter-spacing: 0.05em;">
                     {item['price']} BDT
                 </div>
             </div>
@@ -230,17 +256,17 @@ def display_package_grid(package_list: List[Dict], prefix: str):
             
             btn_col1, btn_col2 = st.columns([5, 4])
             with btn_col1:
-                if st.button("📖 Details", key=f"det_{prefix}_{idx}_{item['name']}", use_container_width=True):
+                if st.button("📖 View", key=f"det_{prefix}_{idx}_{item['name']}", use_container_width=True):
                     st.session_state.selected_package = item
                     st.rerun()
             with btn_col2:
                 if st.button(love_icon, key=f"fav_{prefix}_{idx}_{item['name']}", use_container_width=True):
                     if is_loved:
                         st.session_state.favorites.remove(item['name'])
-                        st.toast(f"Removed {item['name']} from vault.", icon="🗑️")
+                        st.toast(f"Removed {item['name']} from lookbook.", icon="🗑️")
                     else:
                         st.session_state.favorites.add(item['name'])
-                        st.toast(f"Added {item['name']} to favorites vault!", icon="❤️")
+                        st.toast(f"Saved {item['name']} to your lookbook!", icon="❤️")
                     st.rerun()
 
 # ---------------------------
@@ -258,148 +284,151 @@ def main():
     faq_handler = FAQHandler(faq_data)
     agentic_ai = AgenticAI(api_key=api_key, context={"faq": faq_data, "personal": personal_data})
 
-    # --- ROUTE A: DEEP-DIVE PACKAGE SCREEN ---
+    # --- ROUTE A: DEEP-DIVE ATELIER SCREEN ---
     if st.session_state.selected_package:
         pkg = st.session_state.selected_package
         
-        if st.button("← Back to Lookbook Marketplace", use_container_width=True):
+        if st.button("← Return to Lookbook Catalog", use_container_width=True):
             st.session_state.selected_package = None
             st.rerun()
             
         st.markdown("<br>", unsafe_allow_html=True)
         col1, col2 = st.columns([1, 2])
         with col1:
+            is_bridal = "bridal" in pkg.get('type', '').lower()
+            border_clr = "#C5A059" if is_bridal else "#2C323F"
+            
             st.markdown(f"""
-            <div style="border: 2px solid #D4AF37; border-radius: 20px; padding: 40px; 
-                 background: #161920; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
-                <div style="font-size: 60px; margin-bottom: 10px;">🌿</div>
-                <span style="background: rgba(214,175,55,0.1); color: #D4AF37; font-size: 12px; font-weight: 700; padding: 6px 14px; border-radius: 20px; text-transform: uppercase;">
+            <div style="border: 1px solid {border_clr}; border-radius: 12px; padding: 40px; 
+                 background: #121620; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.5);">
+                <div style="font-size: 50px; margin-bottom: 15px;">🌿</div>
+                <span style="background: rgba(197,160,89,0.1); color: #C5A059; font-size: 11px; font-weight: 600; padding: 6px 14px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.1em;">
                     {pkg['type']}
                 </span>
-                <h2 style="margin-top: 20px; color: white;">{pkg['name']}</h2>
-                <h1 style="color: #D4AF37; margin-top: 10px;">{pkg['price']} BDT</h1>
+                <h2 style="margin-top: 24px; color: white; font-size: 28px;">{pkg['name']}</h2>
+                <h1 style="color: #C5A059; margin-top: 15px; font-family: 'Marcellus', serif; font-size: 32px;">{pkg['price']} BDT</h1>
             </div>
             """, unsafe_allow_html=True)
             
         with col2:
-            st.markdown(f"## Collection Specifications")
-            st.markdown(f"**📐 Design Length Extension:** {pkg['length']}")
-            st.markdown(f"**✋ Hand Metrics Coverage:** {pkg['hand']} ({pkg['side']})")
-            st.markdown("---")
-            st.markdown(f"### Artistry Description")
-            st.markdown(f"<p style='font-size:16px; line-height:1.6; color:#D1D5DB;'>{pkg['description']}</p>", unsafe_allow_html=True)
+            st.markdown(f"## Design Specifications")
+            st.markdown(f"**📐 Artistry Length Extension:** {pkg['length']}")
+            st.markdown(f"**✋ Coverage Scale:** {pkg['hand']} ({pkg['side']})")
+            st.markdown("<hr style='border-color: rgba(255,255,255,0.05);'>", unsafe_allow_html=True)
+            st.markdown(f"### Collection Narrative")
+            st.markdown(f"<p style='font-size:15px; line-height:1.7; color:#94A3B8;'>{pkg['description']}</p>", unsafe_allow_html=True)
             
             st.markdown("<br>", unsafe_allow_html=True)
-            st.markdown("### 📅 Live Booking Actions")
+            st.markdown("### 📅 Live Consultation & Booking")
             st.markdown(
-                "Ready to secure this look? Secure custom slots instantly via direct link messaging:\n\n"
-                "[💬 Messenger Support](https://m.me/Rafiya.HennaArt) | "
-                "[📱 Contact WhatsApp](https://wa.me/8801323278403) | "
-                "[✉️ Direct Mail Inbox](mailto:rafiyashennaart@gmail.com)"
+                "Ready to transform your vision into fine artistry? Connect directly to reserve bespoke layout times:\n\n"
+                "[💬 Chat on Messenger](https://m.me/Rafiya.HennaArt) | "
+                "[📱 WhatsApp Concierge](https://wa.me/8801323278403) | "
+                "[✉️ Direct Email Studio](mailto:rafiyashennaart@gmail.com)"
             )
             
-    # --- ROUTE B: MAIN MARKETPLACE HOME ---
+    # --- ROUTE B: ARTIST PORTAL INTERFACE ---
     else:
-        # Header Instagram Profile Badge
+        # Luxury Branding Banner
         st.markdown("""
-        <div style="text-align: center; margin-top: 15px; margin-bottom: 25px;">
-            <div style="display: inline-block; width: 90px; height: 90px; border-radius: 50%; background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); padding: 3px;">
-                <div style="width: 100%; height: 100%; border-radius: 50%; background: #161920; display: flex; align-items: center; justify-content: center; font-size: 36px;">🌿</div>
+        <div style="text-align: center; margin-top: 20px; margin-bottom: 35px;">
+            <div style="display: inline-block; width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #C5A059, #8D6E31); padding: 1px; margin-bottom: 12px;">
+                <div style="width: 100%; height: 100%; border-radius: 50%; background: #0A0D14; display: flex; align-items: center; justify-content: center; font-size: 32px;">🌿</div>
             </div>
-            <h1 style="font-size: 2.3rem; margin-top: 10px; margin-bottom: 2px; color: white;">Rafiya's Henna Art</h1>
-            <p style="color: #D4AF37; font-weight: 600; margin-top:0;">@rafiyas_henna_art</p>
+            <h1 style="font-size: 2.8rem; margin: 0; letter-spacing: 0.05em; color: #FFFFFF;">RAFIYA HENNA ART</h1>
+            <p style="color: #C5A059; font-weight: 500; font-size: 12px; letter-spacing: 0.4em; text-transform: uppercase; margin-top: 6px; margin-bottom: 0;">Atelier & Design Studio</p>
         </div>
         """, unsafe_allow_html=True)
 
-        # Splitting distinct modules into responsive app tabs
-        tab_packages, tab_chat, tab_faq = st.tabs([
-            "📦 Portfolio Catalog", 
-            "💬 DM Assistant", 
-            "💡 Knowledge Base"
+        # Tabs Layout Sequence
+        tab_chat, tab_packages, tab_faq = st.tabs([
+            "💬 Atelier Consult", 
+            "🎨 Curated Collections", 
+            "💡 Studio Knowledge Base"
         ])
 
-        # --- TAB 1: PACKAGES & CATALOG ---
+        # --- TAB 1: ARTIST CHAT (Lead Interface) ---
+        with tab_chat:
+            st.markdown(f"### 🌿 Private Studio Lounge")
+            st.write("Inquire dynamically about custom compositions, bridal structural layout adjustments, or stain preservation details.")
+            st.markdown("<br>", unsafe_allow_html=True)
+            
+            for chat in st.session_state.chat_history:
+                if chat['user']:
+                    with st.chat_message("user"):
+                        st.markdown(f"""<div style="background:#1E293B; color:#F1F5F9; padding:14px; border-radius:12px; font-size:14.5px; border: 1px solid #334155; max-width: 80%; margin-left: auto;">{chat['user']}</div>""", unsafe_allow_html=True)
+                
+                with st.chat_message("assistant"):
+                    st.markdown(f"""<div style="background:#121620; color:#E2E8F0; padding:14px; border-radius:12px; font-size:14.5px; border: 1px solid #C5A059; max-width: 85%;"><b>Henna Whisperer:</b><br>{chat['bot']}</div>""", unsafe_allow_html=True)
+
+            user_query = st.chat_input("Ask Henna Whisperer about custom looks, product preservation, or design techniques...")
+
+            if user_query:
+                with st.chat_message("user"):
+                    st.markdown(f"""<div style="background:#1E293B; padding:14px; border-radius:12px;">{user_query}</div>""", unsafe_allow_html=True)
+                
+                with st.spinner("Weaving response..."):
+                    faq_q, faq_a = faq_handler.find_similar_question(user_query)
+                    reply = f"🔍 **Studio FAQ Match:** *{faq_q}*\n\n{faq_a}" if faq_a else agentic_ai.generate_response(user_query)
+                
+                with st.chat_message("assistant"):
+                    st.markdown(f"""<div style="background:#121620; padding:14px; border-radius:12px; border: 1px solid #C5A059;">{reply}</div>""", unsafe_allow_html=True)
+                
+                st.session_state.chat_history.append({"user": user_query, "bot": reply})
+                st.rerun()
+
+            if len(st.session_state.chat_history) > 1:
+                st.markdown("<br>", unsafe_allow_html=True)
+                if st.button("🗑️ Reset Consult Canvas", use_container_width=True):
+                    del st.session_state.chat_history[1:]
+                    agentic_ai.configure_ai()
+                    st.rerun()
+
+        # --- TAB 2: PACKAGES & CATALOG ---
         with tab_packages:
             if st.session_state.favorites:
-                st.markdown(f"### ❤️ Your Saved Favorites Vault ({len(st.session_state.favorites)})")
+                st.markdown(f"### ❤️ Saved Portfolio Vault ({len(st.session_state.favorites)})")
                 saved_items = [p for p in packages if p['name'] in st.session_state.favorites]
                 display_package_grid(saved_items, prefix="vault")
-                st.markdown("---")
+                st.markdown("<hr style='border-color: rgba(255,255,255,0.05);'>", unsafe_allow_html=True)
 
-            st.markdown("### 📦 Curated Portfolios Collection")
+            st.markdown("### 📦 Portfolio Matrix Lookbook")
             col1, col2, col3, col4, col5 = st.columns([1, 1, 1, 1, 2])
             with col1:
                 types = sorted(list(set(p['type'] for p in packages)))
-                sel_type = st.selectbox("Category Filter", ["All"] + types)
+                sel_type = st.selectbox("Aesthetic Category", ["All"] + types)
             filtered = [p for p in packages if sel_type == "All" or p['type'] == sel_type]
             
             with col2:
                 lengths = sorted(list(set(p['length'] for p in filtered)))
-                sel_length = st.selectbox("Design Length", ["All"] + lengths)
+                sel_length = st.selectbox("Design Architecture", ["All"] + lengths)
             filtered = [p for p in filtered if sel_length == "All" or p['length'] == sel_length]
             
             with col3:
                 hands = sorted(list(set(p['hand'] for p in filtered)))
-                sel_hand = st.selectbox("Hand Count", ["All"] + hands)
+                sel_hand = st.selectbox("Coverage Scale", ["All"] + hands)
             filtered = [p for p in filtered if sel_hand == "All" or p['hand'] == sel_hand]
             
             with col4:
                 sides = sorted(list(set(p['side'] for p in filtered)))
-                sel_side = st.selectbox("Coverage Side", ["All"] + sides)
+                sel_side = st.selectbox("Surface Alignment", ["All"] + sides)
             filtered = [p for p in filtered if sel_side == "All" or p['side'] == sel_side]
             
             with col5:
                 prices = [p['price'] for p in filtered]
                 min_p, max_p = (min(prices), max(prices)) if prices else (0, 0)
                 if min_p == max_p:
-                    st.number_input("Max Budget Limit (BDT)", value=max_p, disabled=True)
+                    st.number_input("Budget Threshold (BDT)", value=max_p, disabled=True)
                     sel_price = max_p
                 else:
-                    sel_price = st.slider("Max Budget Limit (BDT)", int(min_p), int(max_p), int(max_p))
+                    sel_price = st.slider("Budget Threshold (BDT)", int(min_p), int(max_p), int(max_p))
 
             final_packages = [p for p in filtered if p['price'] <= sel_price]
             display_package_grid(final_packages, prefix="catalog")
 
-        # --- TAB 2: AI CHAT ASSISTANT ---
-        with tab_chat:
-            st.markdown(f"### 💬 DM Assistant: **Henna Whisperer**")
-            
-            for chat in st.session_state.chat_history:
-                # Only show user dialogue bubbles if user text actually exists
-                if chat['user']:
-                    with st.chat_message("user"):
-                        st.markdown(f"""<div style="background:#1F3520; color:#F3F4F6; padding:14px; border-radius:16px 16px 2px 16px; font-size:15px; border: 1px solid #2e4d30; max-width: 85%; margin-left: auto;">{chat['user']}</div>""", unsafe_allow_html=True)
-                
-                with st.chat_message("assistant"):
-                    st.markdown(f"""<div style="background:#231E16; color:#F3F4F6; padding:14px; border-radius:16px 16px 16px 2px; font-size:15px; border: 1px solid #4a3b20; max-width: 85%;"><b>Henna Whisperer:</b><br>{chat['bot']}</div>""", unsafe_allow_html=True)
-
-            user_query = st.chat_input("Message Henna Whisperer about portfolio sets, care techniques or styles...")
-
-            if user_query:
-                with st.chat_message("user"):
-                    st.markdown(f"""<div style="background:#1F3520; padding:14px; border-radius:16px 16px 2px 16px;">{user_query}</div>""", unsafe_allow_html=True)
-                
-                with st.spinner("Henna Whisperer is typing..."):
-                    faq_q, faq_a = faq_handler.find_similar_question(user_query)
-                    reply = f"🔍 **FAQ Match:** *{faq_q}*\n\n{faq_a}" if faq_a else agentic_ai.generate_response(user_query)
-                
-                with st.chat_message("assistant"):
-                    st.markdown(f"""<div style="background:#231E16; padding:14px; border-radius:16px 16px 16px 2px;">{reply}</div>""", unsafe_allow_html=True)
-                
-                st.session_state.chat_history.append({"user": user_query, "bot": reply})
-                st.rerun()
-
-            # Optional clear conversation button (retains original welcome prompt)
-            if len(st.session_state.chat_history) > 1:
-                st.markdown("<br>", unsafe_allow_html=True)
-                if st.button("🗑️ Reset DM Conversational Canvas", use_container_width=True):
-                    del st.session_state.chat_history[1:]
-                    agentic_ai.configure_ai()
-                    st.rerun()
-
         # --- TAB 3: FAQ KNOWLEDGE BASE ---
         with tab_faq:
-            st.markdown("### 💡 Knowledge Base Help Center")
+            st.markdown("### 💡 Studio Learning & Care Knowledge Base")
             if faq_data:
                 categories = sorted(list(set(faq['category'] for faq in faq_data)))
                 for cat in categories:
@@ -408,8 +437,8 @@ def main():
                     for faq in cat_faqs:
                         with st.expander(f"✨ {faq['question']}", expanded=False):
                             st.markdown(f"""
-                            <div style="background-color: #1C202A; padding: 16px; border-left: 3px solid #D4AF37; 
-                                        border-radius: 4px; color: #E5E7EB; font-size: 14.5px; line-height: 1.6;">
+                            <div style="background-color: #0A0D14; padding: 18px; border-left: 2px solid #C5A059; 
+                                        border-radius: 4px; color: #94A3B8; font-size: 14px; line-height: 1.7;">
                                 {faq['answer']}
                             </div>
                             """, unsafe_allow_html=True)
