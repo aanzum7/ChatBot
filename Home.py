@@ -20,12 +20,12 @@ if "selected_package" not in st.session_state:
 if "favorites" not in st.session_state or not isinstance(st.session_state.favorites, set):
     st.session_state.favorites = set()
 
-# Initialize chat history with minimal, direct intro greeting
+# Initialize chat history with clean, elegant minimalism
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = [
         {
             "user": None,
-            "bot": "Assalamu Alaikum! 🌿✨ I am **Rafiya**. Ask me anything about my portfolios, organic products, or design sessions. I'm here to help! 💬"
+            "bot": "Assalamu Alaikum! 🌿 I am **Rafiya**. Welcome to my design studio. Let's find your perfect look! 💬"
         }
     ]
 
