@@ -37,12 +37,10 @@ def get_toml_backup_data():
     """Parses structural fallback layout arrays directly from secrets TOML."""
     personal_data = st.secrets.get("personal", {}).get("data", {})
     
-    # Extract raw data sets from TOML mapping format
     toml_packages = personal_data.get("packages", [])
     toml_courses = personal_data.get("course", {}).get("courses", [])
     toml_products = personal_data.get("products", {}).get("items", [])
     
-    # Normalize TOML courses to match structural CSV keys
     packages = []
     for p in toml_packages:
         packages.append({
@@ -96,8 +94,7 @@ def fetch_live_studio_data():
     
     try:
         df_packages = pd.read_csv(packages_url)
-        # Structural check ensures valid spreadsheet processing loop activation
-        if not df_packages.empty and ("name" in df_packages.columns or "name" in df_packages.iloc[0].values or df_packages.shape[1] > 1):
+        if not df_packages.empty and ("name" in df_packages.columns or df_packages.shape[1] > 1):
             df_courses = pd.read_csv(courses_url)
             df_products = pd.read_csv(products_url)
             
@@ -290,9 +287,7 @@ class AgenticAI:
         try:
             prompt = (
                 f"FAQ Context: {self.context['faq']}\n"
-                f"Live Dynamic Package Context: {self.context['packages']}\n"
-                f"Live Dynamic Course Context: {self.context['courses']}\n"
-                f"Live Dynamic Product Context: {self.context['products']}\n"
+                f"Package Context: {self.context['packages']}\n"
                 f"User Input: {user_input}\n\n"
                 "You are Rafiya, a friendly henna artist. Keep your response short, clean, and directly to the point. No fluff.\n\n"
                 "💬 [Messenger](https://m.me/Rafiya.HennaArt) | 📱 [WhatsApp](https://wa.me/8801323278403)\n\n"
@@ -326,7 +321,6 @@ def main():
     api_key = st.secrets.get("genai", {}).get("api_key", "")
     faq_data = st.secrets.get("faq", {}).get("questions", [])
 
-    # Automated Init Sync Sequence mapping from spreadsheets first
     if "db_packages" not in st.session_state or "db_courses" not in st.session_state or "db_products" not in st.session_state:
         run_interactive_pipeline()
         pkgs, crs, prds = fetch_live_studio_data()
@@ -434,6 +428,9 @@ def main():
                 st.markdown("<hr style='border-color: rgba(255,255,255,0.05);'>", unsafe_allow_html=True)
 
             st.markdown("### 📦 Curated Portfolio Lookbook")
+            st.markdown("<p style='font-size:13px; color:#64748B; margin-top:-10px;'>Filter our signature aesthetic sets by length, scale, alignment, or budget parameters.</p>", unsafe_allow_html=True)
+            st.markdown("<br>", unsafe_allow_html=True)
+
             col1, col2, col3, col4, col5 = st.columns([1, 1, 1, 1, 2])
             with col1:
                 types = sorted(list(set(str(p.get('type', '')) for p in packages))) if packages else []
@@ -462,6 +459,9 @@ def main():
         # --- TAB 3: TRAINING PROGRAMS ---
         with tab_courses:
             st.markdown("### 🎓 Educational Atelier Workshops")
+            st.markdown("<p style='font-size:13px; color:#64748B; margin-top:-10px;'>Develop professional skill tracks with intensive virtual or in-person mentorship options.</p>", unsafe_allow_html=True)
+            st.markdown("<br>", unsafe_allow_html=True)
+
             if courses:
                 for c in courses:
                     with st.expander(f"📖 {c.get('course_title', 'Workshop')} — Sessions Start: {c.get('start_date','-')}", expanded=True):
@@ -469,24 +469,30 @@ def main():
                         with col_info:
                             st.markdown(f"**⏳ Structure:** {int(float(c['total_classes'])) if c.get('total_classes') else 0} Intensive Sessions\n\n**👥 Group Profile:** {c.get('eligibility','-')}\n\n**🎯 Career Milestone:** {c.get('outcome','-')}")
                         with col_off:
-                            st.markdown(f"**📍 In-Person Studio classes:**\n\n* Rate: **{int(float(c['offline_fee'])) if c.get('offline_fee') else 0} BDT**\n* Timeline: {c.get('offline_days','-')} ({c.get('offline_time','-')})\n* Hub: {c.get('offline_location','-')}")
+                            st.markdown(f"**📍 In-Person Studio classes:**\n\n* Rate: **{int(float(c['offline_fee'])) if c['offline_fee'] else 0} BDT**\n* Timeline: {c.get('offline_days','-')} ({c.get('offline_time','-')})\n* Hub: {c.get('offline_location','-')}")
                         with col_on:
-                            st.markdown(f"**🌐 Live Virtual Classroom:**\n\n* Rate: **{int(float(c['online_fee'])) if c.get('online_fee') else 0} BDT**\n* Timeline: {c.get('online_days','-')} ({c.get('online_time','-')})\n* Engine: {c.get('online_platform','-')}")
+                            st.markdown(f"**🌐 Live Virtual Classroom:**\n\n* Rate: **{int(float(c['online_fee'])) if c['online_fee'] else 0} BDT**\n* Timeline: {c.get('online_days','-')} ({c.get('online_time','-')})\n* Engine: {c.get('online_platform','-')}")
             else:
                 st.info("No active training workshops registered in the database.")
 
         # --- TAB 4: ORGANIC PRODUCTS ---
         with tab_products:
             st.markdown("### 🌿 Handcrafted Stain Materials")
+            st.markdown("<p style='font-size:13px; color:#64748B; margin-top:-10px;'>Shop chemical-free, premium cones formulated exclusively with 100% natural, halal ingredients.</p>", unsafe_allow_html=True)
+            st.markdown("<br>", unsafe_allow_html=True)
+
             if products:
                 for prd in products:
-                    st.markdown(f'<div style="border: 1px solid #2C323F; background: #121620; padding: 20px; border-radius: 8px; margin-bottom: 12px;"><h4 style="margin:0 0 4px 0; color: #C5A059; font-size:18px;">✨ {prd.get("product_name", "Handcrafted Cone")}</h4><p style="margin:0 0 10px 0; font-size:13px; color:#94A3B8;">{prd.get("description","")}</p><span style="font-family:\'Marcellus\', serif; font-size:15px; color:#FFF;">Base Rate: {int(float(prd["mrp"])) if prd.get("mrp") else 0} BDT</span></div>', unsafe_allow_html=True)
+                    st.markdown(f'<div style="border: 1px solid #2C323F; background: #121620; padding: 22px; border-radius: 12px; margin-bottom: 12px;"><h4 style="margin:0 0 4px 0; color: #C5A059; font-size:18px;">✨ {prd.get("product_name", "Handcrafted Cone")}</h4><p style="margin:0 0 12px 0; font-size:13px; color:#94A3B8;">{prd.get("description","")}</p><span style="font-family:\'Marcellus\', serif; font-size:15px; color:#FFF;">Base Rate: {int(float(prd["mrp"])) if prd.get("mrp") else 0} BDT</span></div>', unsafe_allow_html=True)
             else:
                 st.info("No retail products available in the collection at this time.")
 
         # --- TAB 5: FAQ KNOWLEDGE BASE ---
         with tab_faq:
             st.markdown("### 💡 Studio Learning & Care Knowledge Base")
+            st.markdown("<p style='font-size:13px; color:#64748B; margin-top:-10px;'>Review comprehensive details regarding operational home services and essential scheduling parameters.</p>", unsafe_allow_html=True)
+            st.markdown("<br>", unsafe_allow_html=True)
+
             if faq_data:
                 for cat in sorted(list(set(faq['category'] for faq in faq_data))):
                     st.markdown(f"#### 📁 {cat.upper()}")
