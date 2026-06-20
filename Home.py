@@ -33,8 +33,11 @@ if "chat_history" not in st.session_state:
 # Optimized Data Loading (Cache)
 # ---------------------------
 @st.cache_data(ttl=600)
+# ---------------------------
+# Data Loading (Secrets Access)
+# ---------------------------
 def load_studio_secrets():
-    """Caches structural configurations to minimize secrets overhead."""
+    """Fetches structural configurations directly from Streamlit secrets."""
     faq_data = st.secrets.get("faq", {}).get("questions", [])
     personal_data = st.secrets.get("personal", {}).get("data", {})
     api_key = st.secrets.get("genai", {}).get("api_key", "")
