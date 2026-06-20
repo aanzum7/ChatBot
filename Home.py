@@ -20,8 +20,14 @@ if "selected_package" not in st.session_state:
 if "favorites" not in st.session_state or not isinstance(st.session_state.favorites, set):
     st.session_state.favorites = set()
 
+# Initialize chat history with a warm first DM from Henna Whisperer
 if "chat_history" not in st.session_state:
-    st.session_state.chat_history = []
+    st.session_state.chat_history = [
+        {
+            "user": None,
+            "bot": "Assalamu Alaikum! 🌿✨ Welcome to my creative sanctuary! I am **Rafiya**, your friendly henna artist. Whether you are searching for the perfect package, shopping for organic cones, or looking to learn the art, I am here to guide you. <br><br>Tell me what you have in mind—in English, Bangla, or Banglish! 💬"
+        }
+    ]
 
 # ---------------------------
 # Core Logic Engines
@@ -172,8 +178,8 @@ def apply_premium_styles():
             border: 1px solid #262B36 !important;
             border-radius: 14px !important;
         }
-        
-        /* Premium Tab Styling */
+
+        /* Premium Tab Header Styling */
         button[data-baseweb="tab"] {
             color: #9CA3AF !important;
             font-size: 16px !important;
@@ -292,9 +298,9 @@ def main():
                 "[✉️ Direct Mail Inbox](mailto:rafiyashennaart@gmail.com)"
             )
             
-    # --- ROUTE B: MAIN MARKETPLACE HOME (WITH TABS) ---
+    # --- ROUTE B: MAIN MARKETPLACE HOME ---
     else:
-        # Header Profile Badge
+        # Header Instagram Profile Badge
         st.markdown("""
         <div style="text-align: center; margin-top: 15px; margin-bottom: 25px;">
             <div style="display: inline-block; width: 90px; height: 90px; border-radius: 50%; background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); padding: 3px;">
@@ -305,7 +311,7 @@ def main():
         </div>
         """, unsafe_allow_html=True)
 
-        # Generating Tabs
+        # Splitting distinct modules into responsive app tabs
         tab_packages, tab_chat, tab_faq = st.tabs([
             "📦 Portfolio Catalog", 
             "💬 DM Assistant", 
@@ -359,8 +365,11 @@ def main():
             st.markdown(f"### 💬 DM Assistant: **Henna Whisperer**")
             
             for chat in st.session_state.chat_history:
-                with st.chat_message("user"):
-                    st.markdown(f"""<div style="background:#1F3520; color:#F3F4F6; padding:14px; border-radius:16px 16px 2px 16px; font-size:15px; border: 1px solid #2e4d30; max-width: 85%; margin-left: auto;">{chat['user']}</div>""", unsafe_allow_html=True)
+                # Only show user dialogue bubbles if user text actually exists
+                if chat['user']:
+                    with st.chat_message("user"):
+                        st.markdown(f"""<div style="background:#1F3520; color:#F3F4F6; padding:14px; border-radius:16px 16px 2px 16px; font-size:15px; border: 1px solid #2e4d30; max-width: 85%; margin-left: auto;">{chat['user']}</div>""", unsafe_allow_html=True)
+                
                 with st.chat_message("assistant"):
                     st.markdown(f"""<div style="background:#231E16; color:#F3F4F6; padding:14px; border-radius:16px 16px 16px 2px; font-size:15px; border: 1px solid #4a3b20; max-width: 85%;"><b>Henna Whisperer:</b><br>{chat['bot']}</div>""", unsafe_allow_html=True)
 
@@ -380,10 +389,11 @@ def main():
                 st.session_state.chat_history.append({"user": user_query, "bot": reply})
                 st.rerun()
 
-            if st.session_state.chat_history:
+            # Optional clear conversation button (retains original welcome prompt)
+            if len(st.session_state.chat_history) > 1:
                 st.markdown("<br>", unsafe_allow_html=True)
                 if st.button("🗑️ Reset DM Conversational Canvas", use_container_width=True):
-                    st.session_state.chat_history = []
+                    del st.session_state.chat_history[1:]
                     agentic_ai.configure_ai()
                     st.rerun()
 
