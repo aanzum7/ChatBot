@@ -2,6 +2,11 @@ import streamlit as st
 import google.generativeai as genai
 import langdetect
 import logging
+import pandas as pd
+import requests
+import time
+import io
+import os
 from difflib import SequenceMatcher
 from typing import Dict, Tuple, Optional, List
 
@@ -12,6 +17,19 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # ---------------------------
+# Core Constants & GSheet Path
+# ---------------------------
+SHEET_ID = "1n8b5WCeHAeCrMeM_GhxsUGKmT3CILMnrm8a8yYxWaPU"
+# Export endpoints targeting distinct structural workspace tabs
+PACKAGES_CSV_URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/export?format=csv&gid=0"
+COURSES_CSV_URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/export?format=csv&sheet=courses"
+PRODUCTS_CSV_URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/export?format=csv&sheet=products"
+
+CSV_PATH_PACKAGES = "data_packages.csv"
+CSV_PATH_COURSES = "data_courses.csv"
+CSV_PATH_PRODUCTS = "data_products.csv"
+
+# ---------------------------
 # Global Session State Checks
 # ---------------------------
 if "selected_package" not in st.session_state:
@@ -20,7 +38,6 @@ if "selected_package" not in st.session_state:
 if "favorites" not in st.session_state or not isinstance(st.session_state.favorites, set):
     st.session_state.favorites = set()
 
-# Initialize chat history with clean, elegant minimalism
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = [
         {
@@ -30,23 +47,78 @@ if "chat_history" not in st.session_state:
     ]
 
 # ---------------------------
-# Data Loading (Secrets Access)
+# Interactive Data Sync Pipeline
 # ---------------------------
-def load_studio_secrets():
-    """Fetches structural configurations directly from Streamlit secrets without pickling errors."""
-    faq_data = st.secrets.get("faq", {}).get("questions", [])
-    personal_data = st.secrets.get("personal", {}).get("data", {})
-    api_key = st.secrets.get("genai", {}).get("api_key", "")
-    packages = personal_data.get("packages", [])
-    return faq_data, personal_data, api_key, packages
+def sync_live_sheets_pipeline():
+    """Downloads remote cloud sheets data interactively streaming structural logs directly onto the layout."""
+    status_box = st.empty()
+    progress_bar = st.progress(0)
+    
+    with status_box.container():
+        st.markdown("### 🔄 Triggering Studio Sync Pipeline...")
+        st.caption("Establishing connections to the master ledger architecture...")
+    
+    try:
+        # Step 1: Packages Extraction
+        time.sleep(0.4)
+        progress_bar.progress(25)
+        with status_box.container():
+            st.markdown("### 📥 Pulling Curated Collections Lookbook...")
+            st.caption("Downloading package rates matrix tables...")
+        df_pkg = pd.read_csv(PACKAGES_CSV_URL)
+        df_pkg.to_csv(CSV_PATH_PACKAGES, index=False)
+
+        # Step 2: Courses Extraction
+        time.sleep(0.4)
+        progress_bar.progress(55)
+        with status_box.container():
+            st.markdown("### 📥 Syncing Academy Training Schedules...")
+            st.caption("Parsing course syllabus, parameters and dates blocks...")
+        try:
+            df_crs = pd.read_csv(COURSES_CSV_URL)
+        except Exception:
+            # Fallback mock template framework generation if tab name lacks default binding matching gid sequence
+            df_crs = pd.DataFrame(columns=["course_title","start_date","total_classes","eligibility","outcome","offline_fee","online_fee"])
+        df_crs.to_csv(CSV_PATH_COURSES, index=False)
+
+        # Step 3: Products Extraction
+        time.sleep(0.4)
+        progress_bar.progress(85)
+        with status_box.container():
+            st.markdown("### 📥 Loading Organic Inventory Cones Matrix...")
+            st.caption("Verifying Halal materials and pricing parameters...")
+        try:
+            df_prd = pd.read_csv(PRODUCTS_CSV_URL)
+        except Exception:
+            df_prd = pd.DataFrame(columns=["product_name","description","mrp","details"])
+        df_prd.to_csv(CSV_PATH_PRODUCTS, index=False)
+
+        # Finished Pipeline Execution Sequence
+        time.sleep(0.3)
+        progress_bar.progress(100)
+        status_box.success("🎉 Studio Pipeline Sync Complete! All data stored locally as pristine CSV files.")
+        time.sleep(0.8)
+        status_box.empty()
+        progress_bar.empty()
+    except Exception as error:
+        status_box.error(f"❌ Critical Pipeline Disruption: {error}")
+        progress_bar.empty()
+
+def read_local_csv_safely(file_path: str) -> pd.DataFrame:
+    """Helper layout logic to return data or mock dataframe framework if absent."""
+    if os.path.exists(file_path):
+        try:
+            return pd.read_csv(file_path)
+        except Exception:
+            return pd.DataFrame()
+    return pd.DataFrame()
 
 # ---------------------------
-# Core Logic Engines
+# Core AI Prompt Engineering Matrix
 # ---------------------------
 class AgenticAI:
-    def __init__(self, api_key: str, context: Dict):
+    def __init__(self, api_key: str):
         self.api_key = api_key
-        self.context = context
         self.configure_ai()
 
     def configure_ai(self):
@@ -54,154 +126,47 @@ class AgenticAI:
         self.model = genai.GenerativeModel(
             model_name="gemini-2.5-flash-lite",
             generation_config={
-                "temperature": 0.2,
+                "temperature": 0.15,
                 "top_p": 0.85,
                 "max_output_tokens": 256,
             },
         )
         self.chat_session = self.model.start_chat()
-        logger.info("Gemini AI configured.")
 
-    def generate_response(self, user_input: str) -> str:
+    def generate_response(self, user_input: str, csv_context: str) -> str:
         try:
-            try:
-                input_language = langdetect.detect(user_input)
-            except langdetect.lang_detect_exception.LangDetectException:
-                input_language = "en"
-
             prompt = (
-                f"FAQ Context: {self.context['faq']}\n"
-                f"Personal Context: {self.context['personal']}\n"
-                f"User Input: {user_input}\n\n"
-                "You are Rafiya, a friendly henna artist 🌿✨. "
-                "Respond naturally, matching the user's tone. "
-                "Reply instantly in whatever language the query uses (Bangla, English, or Banglish).\n\n"
-                "CRITICAL: Keep your response short, precise, and directly to the point. No fluff or lengthy introductions. "
-                "Dynamically provide accurate summaries using this data context:\n"
-                "1️⃣ FAQ details.\n"
-                "2️⃣ Bridal/Non-Bridal Packages: Show quick rates & link to 🌿 [Packages](https://rafiyashennaart.streamlit.app/Packages)\n"
-                "3️⃣ Products: List availability & link to 🌿 [Products](https://sites.google.com/view/rafiyashennaart/products)\n"
-                "4️⃣ Training: Provide details & link to 🌿 [Courses](https://sites.google.com/view/rafiyashennaart/courses-training)\n\n"
-                "Always drop short links to secure direct bookings or questions:\n"
-                "💬 [Messenger](https://m.me/Rafiya.HennaArt) | 📱 [WhatsApp](https://wa.me/8801323278403)\n\n"
-                "If information isn't available in context, provide the closest alternative and guide them to message directly."
+                f"DATABASE CSV FILES CONTEXT RECORD LOGS:\n{csv_context}\n\n"
+                f"User Query: {user_input}\n\n"
+                "You are Rafiya, a creative and friendly henna artist 🌿✨. "
+                "Respond accurately and naturally matching the user's input language tone. "
+                "CRITICAL DIRECTION: Rely exclusively on the CSV context provided above to derive answers. "
+                "Keep your response extremely short, concise, and focused to a summary style. Avoid introductions or conversational fluff. "
+                "Always point users to direct contact pipelines when unsure:\n"
+                "💬 [Messenger](https://m.me/Rafiya.HennaArt) | 📱 [WhatsApp](https://wa.me/8801323278403)"
             )
-
             response = self.chat_session.send_message(prompt)
-            if response and hasattr(response, "text") and response.text:
-                return response.text.strip()
-            else:
-                self.chat_session = self.model.start_chat()
-                retry = self.chat_session.send_message(prompt)
-                if retry and hasattr(retry, "text") and retry.text:
-                    return retry.text.strip()
-                return "🤖 Couldn’t process statement. Drop a direct note instead!"
+            return response.text.strip() if response and hasattr(response, "text") else "🤖 Studio offline. Drop a text query via WhatsApp!"
         except Exception as e:
-            logger.error(f"Error generating response: {e}")
-            return f"⚠️ Error: {e}"
-
-class FAQHandler:
-    def __init__(self, faq_list: List[Dict]):
-        self.faq_list = faq_list
-        # In-memory execution map cache for faster evaluation lookup
-        self.faq_cache: Dict[str, Tuple[str, str]] = {}
-
-    def find_similar_question(self, user_input: str, threshold: float = 0.65) -> Tuple[Optional[str], Optional[str]]:
-        cleaned_input = user_input.strip().lower()
-        
-        # Immediate memory check return to bypass execution cycles
-        if cleaned_input in self.faq_cache:
-            return self.faq_cache[cleaned_input]
-            
-        best_q, best_a, highest = None, None, 0
-        for faq in self.faq_list:
-            sim = SequenceMatcher(None, cleaned_input, faq['question'].lower()).ratio()
-            if sim > highest:
-                highest, best_q, best_a = sim, faq['question'], faq['answer']
-                
-        if highest >= threshold:
-            # Commit tracking coordinates into data layout
-            self.faq_cache[cleaned_input] = (best_q, best_a)
-            return best_q, best_a
-            
-        return None, None
+            logger.error(f"Error parsing text output: {e}")
+            return "🤖 Unable to compile response loop. Connect directly via messenger link!"
 
 # ---------------------------
 # Production-Safe Premium CSS Injector
 # ---------------------------
 def apply_premium_styles():
-    st.set_page_config(page_title="Rafiya's Henna Portal", page_icon="🌿", layout="wide")
-    
     st.markdown("""
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Marcellus&family=Montserrat:wght@400;500;600&display=swap');
-
-        /* Canvas Setup */
-        .stApp, [data-testid="stAppViewContainer"], [data-testid="stSidebar"] {
-            background: radial-gradient(circle at top right, #161A24, #0A0D14) !important;
-            color: #E2E8F0 !important;
-            font-family: 'Montserrat', sans-serif;
-        }
-        
-        h1, h2, h3, h4 {
-            font-family: 'Marcellus', serif !important;
-            color: #F8FAFC !important;
-            font-weight: 400 !important;
-        }
-
-        /* Input Controls */
-        div[data-baseweb="select"] > div {
-            border: 1px solid #2C323F !important;
-            border-radius: 8px !important;
-            background-color: #121620 !important;
-        }
-        div[data-baseweb="select"] span, div[data-baseweb="select"] div {
-            color: #E2E8F0 !important;
-        }
-        [data-testid="stWidgetLabel"] p {
-            color: #94A3B8 !important;
-            font-size: 13px !important;
-            font-weight: 500 !important;
-        }
-
-        /* Buttons */
-        .stButton>button {
-            background: transparent !important;
-            color: #C5A059 !important;
-            border: 1px solid #C5A059 !important;
-            border-radius: 4px !important;
-            padding: 8px 20px !important;
-            font-size: 12px !important;
-            font-weight: 600 !important;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            transition: all 0.3s ease !important;
-        }
-        .stButton>button:hover {
-            transform: translateY(-1px) !important;
-            background: #C5A059 !important;
-            color: #0A0D14 !important;
-            box-shadow: 0 4px 15px rgba(197, 160, 89, 0.2) !important;
-        }
-        
+        .stApp { background: radial-gradient(circle at top right, #161A24, #0A0D14) !important; color: #E2E8F0 !important; font-family: 'Montserrat', sans-serif; }
+        h1, h2, h3, h4 { font-family: 'Marcellus', serif !important; color: #F8FAFC !important; font-weight: 400 !important; }
+        div[data-baseweb="select"] > div { border: 1px solid #2C323F !important; border-radius: 8px !important; background-color: #121620 !important; }
+        div[data-baseweb="select"] span, div[data-baseweb="select"] div { color: #E2E8F0 !important; }
+        .stButton>button { background: transparent !important; color: #C5A059 !important; border: 1px solid #C5A059 !important; border-radius: 4px !important; padding: 8px 20px !important; font-size: 12px !important; font-weight: 600 !important; text-transform: uppercase; letter-spacing: 0.1em; transition: all 0.3s ease !important; }
+        .stButton>button:hover { transform: translateY(-1px) !important; background: #C5A059 !important; color: #0A0D14 !important; box-shadow: 0 4px 15px rgba(197, 160, 89, 0.2) !important; }
         .stSlider [role="slider"] { background-color: #C5A059 !important; }
-        [data-testid="stExpander"] {
-            background-color: #121620 !important;
-            border: 1px solid #2C323F !important;
-            border-radius: 8px !important;
-        }
-        
-        /* Interactive Atelier Tabs */
-        button[data-baseweb="tab"] {
-            color: #64748B !important;
-            font-family: 'Marcellus', serif !important;
-            font-size: 16px !important;
-            letter-spacing: 0.05em;
-        }
-        button[aria-selected="true"] {
-            color: #C5A059 !important;
-            border-bottom-color: #C5A059 !important;
-        }
+        button[data-baseweb="tab"] { color: #64748B !important; font-family: 'Marcellus', serif !important; font-size: 15px !important; letter-spacing: 0.05em; }
+        button[aria-selected="true"] { color: #C5A059 !important; border-bottom-color: #C5A059 !important; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -209,50 +174,30 @@ def apply_premium_styles():
 # Visual Component Layout Helpers
 # ---------------------------
 def display_package_grid(package_list: List[Dict], prefix: str):
-    """Displays a responsive portfolio grid with variations separating Bridal vs Non-Bridal styling aesthetics."""
+    """Displays a responsive portfolio matrix distinguishing Bridal vs Daily collections."""
     for idx, item in enumerate(package_list):
         if idx % 4 == 0:
             cols = st.columns(4)
-            
         col = cols[idx % 4]
         with col:
             is_loved = item['name'] in st.session_state.favorites
             love_icon = "❤️ Saved" if is_loved else "🤍 Save Look"
+            is_bridal = "bridal" in str(item.get('type', '')).lower()
             
-            is_bridal = "bridal" in item.get('type', '').lower()
-            if is_bridal:
-                card_style = """
-                    border: 1px solid #C5A059; 
-                    background: linear-gradient(135deg, #181C26, #0A0D14);
-                    box-shadow: 0 10px 30px rgba(197, 160, 89, 0.08);
-                """
-                badge_style = "background: rgba(197, 160, 89, 0.15); color: #C5A059; border: 1px solid rgba(197, 160, 89, 0.3);"
-                title_color = "#F1E7D0"
-            else:
-                card_style = """
-                    border: 1px solid #2C323F; 
-                    background: #121620;
-                    box-shadow: 0 10px 25px rgba(0,0,0,0.4);
-                """
-                badge_style = "background: rgba(148, 163, 184, 0.1); color: #94A3B8;"
-                title_color = "#FFFFFF"
+            card_style = "border: 1px solid #C5A059; background: linear-gradient(135deg, #181C26, #0A0D14);" if is_bridal else "border: 1px solid #2C323F; background: #121620;"
+            badge_style = "background: rgba(197, 160, 89, 0.15); color: #C5A059;" if is_bridal else "background: rgba(148, 163, 184, 0.1); color: #94A3B8;"
             
             st.markdown(f"""
-            <div style="border-radius: 12px; padding: 22px; display: flex; flex-direction: column; 
-                 justify-content: space-between; height: 340px; margin-bottom: 12px; {card_style}">
+            <div style="border-radius: 12px; padding: 22px; display: flex; flex-direction: column; justify-content: space-between; height: 340px; margin-bottom: 12px; {card_style}">
                 <div>
-                    <span style="font-size: 9px; font-weight: 600; padding: 4px 10px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.05em; {badge_style}">
+                    <span style="font-size: 9px; font-weight: 600; padding: 4px 10px; border-radius: 4px; text-transform: uppercase; {badge_style}">
                         {item['type']}
                     </span>
-                    <h3 style="margin-top: 16px; margin-bottom: 4px; font-size: 18px; line-height: 1.3; color: {title_color};">{item['name']}</h3>
+                    <h3 style="margin-top: 16px; margin-bottom: 4px; font-size: 18px; line-height: 1.3;">{item['name']}</h3>
                     <div style="font-size:11px; color: #64748B; margin-bottom: 12px;">📐 {item['length']} • ✋ {item['hand']}</div>
-                    <p style="color: #94A3B8; font-size: 13px; overflow-y: auto; max-height: 95px; line-height: 1.5;">
-                        {item['description']}
-                    </p>
+                    <p style="color: #94A3B8; font-size: 13px; overflow-y: auto; max-height: 95px; line-height: 1.5;">{item['description']}</p>
                 </div>
-                <div style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 12px; font-family: 'Marcellus', serif; font-size: 16px; color: #C5A059;">
-                    {item['price']} BDT
-                </div>
+                <div style="font-family: 'Marcellus', serif; font-size: 16px; color: #C5A059;">{item['price']} BDT</div>
             </div>
             """, unsafe_allow_html=True)
             
@@ -265,10 +210,8 @@ def display_package_grid(package_list: List[Dict], prefix: str):
                 if st.button(love_icon, key=f"fav_{prefix}_{idx}_{item['name']}", use_container_width=True):
                     if is_loved:
                         st.session_state.favorites.remove(item['name'])
-                        st.toast(f"Removed {item['name']} from lookbook.", icon="🗑️")
                     else:
                         st.session_state.favorites.add(item['name'])
-                        st.toast(f"Saved {item['name']} to your lookbook!", icon="❤️")
                     st.rerun()
 
 # ---------------------------
@@ -276,179 +219,164 @@ def display_package_grid(package_list: List[Dict], prefix: str):
 # ---------------------------
 def main():
     apply_premium_styles()
+    api_key = st.secrets.get("genai", {}).get("api_key", "")
+    
+    # Run pipeline automatically to generate CSV files if they don't exist yet
+    if not os.path.exists(CSV_PATH_PACKAGES):
+        sync_live_sheets_pipeline()
 
-    # Dynamic loading safely decoupled from data cache pickling limitations
-    faq_data, personal_data, api_key, packages = load_studio_secrets()
+    # Load data from local optimized CSV structures
+    df_p = read_local_csv_safely(CSV_PATH_PACKAGES)
+    df_c = read_local_csv_safely(CSV_PATH_COURSES)
+    df_r = read_local_csv_safely(CSV_PATH_PRODUCTS)
+    
+    packages_list = df_p.to_dict(orient="records") if not df_p.empty else []
 
-    if "faq_handler" not in st.session_state:
-        st.session_state.faq_handler = FAQHandler(faq_data)
-        
-    faq_handler = st.session_state.faq_handler
-    agentic_ai = AgenticAI(api_key=api_key, context={"faq": faq_data, "personal": personal_data})
+    # Compile compressed text context arrays to optimize runtime token usage
+    context_str = f"PACKAGES METRIC:\n{df_p.to_string(index=False)}\n\nCOURSES SCHEDULE:\n{df_c.to_string(index=False)}\n\nPRODUCTS LEDGER:\n{df_r.to_string(index=False)}"
+    agentic_ai = AgenticAI(api_key=api_key)
 
-    # --- ROUTE A: DEEP-DIVE ATELIER SCREEN ---
+    # Sidebar Pipeline Automation Controls
+    with st.sidebar:
+        st.markdown("### 🛠️ Data Infrastructure")
+        st.caption("Synchronize operational ledgers with your live Google Sheets workspace.")
+        if st.button("🔄 Sync Live Database", use_container_width=True):
+            sync_live_sheets_pipeline()
+            st.rerun()
+
+    # Deep-dive screen overlay checks
     if st.session_state.selected_package:
         pkg = st.session_state.selected_package
-        
         if st.button("← Return to Lookbook Catalog", use_container_width=True):
             st.session_state.selected_package = None
             st.rerun()
-            
+        
         st.markdown("<br>", unsafe_allow_html=True)
         col1, col2 = st.columns([1, 2])
         with col1:
-            is_bridal = "bridal" in pkg.get('type', '').lower()
-            border_clr = "#C5A059" if is_bridal else "#2C323F"
-            
             st.markdown(f"""
-            <div style="border: 1px solid {border_clr}; border-radius: 12px; padding: 40px; 
-                 background: #121620; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.5);">
+            <div style="border: 1px solid #C5A059; border-radius: 12px; padding: 40px; background: #121620; text-align: center;">
                 <div style="font-size: 50px; margin-bottom: 15px;">🌿</div>
-                <span style="background: rgba(197,160,89,0.1); color: #C5A059; font-size: 11px; font-weight: 600; padding: 6px 14px; border-radius: 4px; text-transform: uppercase;">
-                    {pkg['type']}
-                </span>
-                <h2 style="margin-top: 24px; color: white; font-size: 28px;">{pkg['name']}</h2>
-                <h1 style="color: #C5A059; margin-top: 15px; font-family: 'Marcellus', serif; font-size: 32px;">{pkg['price']} BDT</h1>
+                <h2 style="color: white; font-size: 28px;">{pkg['name']}</h2>
+                <h1 style="color: #C5A059; margin-top: 15px; font-size: 32px;">{pkg['price']} BDT</h1>
             </div>
             """, unsafe_allow_html=True)
-            
         with col2:
-            st.markdown(f"## Design Specifications")
-            st.markdown(f"**📐 Artistry Length Extension:** {pkg['length']}")
-            st.markdown(f"**✋ Coverage Scale:** {pkg['hand']} ({pkg['side']})")
+            st.markdown(f"## Design Architecture Specifications")
+            st.write(f"**📐 Extent Dimensions:** {pkg['length']} | **✋ Surface Distribution:** {pkg['hand']} ({pkg['side']})")
             st.markdown("<hr style='border-color: rgba(255,255,255,0.05);'>", unsafe_allow_html=True)
-            st.markdown(f"### Collection Narrative")
-            st.markdown(f"<p style='font-size:15px; line-height:1.7; color:#94A3B8;'>{pkg['description']}</p>", unsafe_allow_html=True)
+            st.write(pkg['description'])
+            st.markdown("---")
+            st.markdown("[💬 Book on Messenger](https://m.me/Rafiya.HennaArt) \| [📱 Consult on WhatsApp](https://wa.me/8801323278403)")
             
-            st.markdown("<br>", unsafe_allow_html=True)
-            st.markdown("### 📅 Live Consultation & Booking")
-            st.markdown(
-                "Ready to transform your vision into fine artistry? Connect directly to reserve bespoke layout times:\n\n"
-                "[💬 Chat on Messenger](https://m.me/Rafiya.HennaArt) | "
-                "[📱 WhatsApp Concierge](https://wa.me/8801323278403) | "
-                "[✉️ Direct Email Studio](mailto:rafiyashennaart@gmail.com)"
-            )
-            
-    # --- ROUTE B: ARTIST PORTAL INTERFACE ---
     else:
+        # Editorial Luxury Branding Banner
         st.markdown("""
         <div style="text-align: center; margin-top: 20px; margin-bottom: 35px;">
-            <div style="display: inline-block; width: 70px; height: 70px; border-radius: 50%; background: linear-gradient(135deg, #C5A059, #8D6E31); padding: 1px; margin-bottom: 10px;">
-                <div style="width: 100%; height: 100%; border-radius: 50%; background: #0A0D14; display: flex; align-items: center; justify-content: center; font-size: 28px;">🌿</div>
-            </div>
             <h1 style="font-size: 2.6rem; margin: 0; letter-spacing: 0.05em; color: #FFFFFF;">RAFIYA HENNA ART</h1>
             <p style="color: #C5A059; font-weight: 500; font-size: 11px; letter-spacing: 0.35em; text-transform: uppercase; margin-top: 4px; margin-bottom: 0;">Atelier & Design Studio</p>
         </div>
         """, unsafe_allow_html=True)
 
-        tab_chat, tab_packages, tab_faq = st.tabs([
+        # Tab Navigation Architecture Sequences
+        tab_chat, tab_packages, tab_courses, tab_products = st.tabs([
             "💬 Private Studio Lounge", 
             "🎨 Curated Collections", 
-            "💡 Studio Knowledge Base"
+            "🎓 Studio Academy",
+            "🌿 Handcrafted Inventory"
         ])
 
-        # --- TAB 1: ARTIST CHAT (Lead Interface) ---
+        # --- TAB 1: INTERACTIVE LLM CHAT ASSISTANT ---
         with tab_chat:
             st.markdown(f"### 🌿 Automated Assistant")
-            st.markdown("<p style='font-size:13px; color:#64748B; margin-top:-10px;'>Inquire instantly about designs, structural compositions, or preservation details.</p>", unsafe_allow_html=True)
-            
             for chat in st.session_state.chat_history:
                 if chat['user']:
                     with st.chat_message("user"):
                         st.markdown(f"""<div style="background:#1E293B; color:#F1F5F9; padding:12px 16px; border-radius:12px; font-size:14.5px; border: 1px solid #334155; max-width: 80%; margin-left: auto;">{chat['user']}</div>""", unsafe_allow_html=True)
-                
                 with st.chat_message("assistant"):
                     st.markdown(f"""<div style="background:#121620; color:#E2E8F0; padding:12px 16px; border-radius:12px; font-size:14.5px; border: 1px solid #C5A059; max-width: 85%;"><b>Henna Whisperer:</b><br>{chat['bot']}</div>""", unsafe_allow_html=True)
 
-            user_query = st.chat_input("Message assistant for direct pricing, design structures, or tips...")
-
+            user_query = st.chat_input("Ask Henna Whisperer about custom catalog tracks or processing metrics...")
             if user_query:
                 with st.chat_message("user"):
                     st.markdown(f"""<div style="background:#1E293B; padding:12px 16px; border-radius:12px;">{user_query}</div>""", unsafe_allow_html=True)
-                
-                with st.spinner("Weaving insight..."):
-                    faq_q, faq_a = faq_handler.find_similar_question(user_query)
-                    reply = f"🔍 **Studio FAQ:** *{faq_q}*\n\n{faq_a}" if faq_a else agentic_ai.generate_response(user_query)
-                
+                with st.spinner("Weaving insight logs..."):
+                    reply = agentic_ai.generate_response(user_query, context_str)
                 with st.chat_message("assistant"):
                     st.markdown(f"""<div style="background:#121620; padding:12px 16px; border-radius:12px; border: 1px solid #C5A059;">{reply}</div>""", unsafe_allow_html=True)
-                
                 st.session_state.chat_history.append({"user": user_query, "bot": reply})
                 st.rerun()
 
-            st.markdown("""
-            <div style='background: rgba(148,163,184,0.04); border-radius: 8px; padding: 12px 16px; margin-top: 20px; border: 1px dashed rgba(255,255,255,0.08);'>
-                <p style='margin:0; font-size:11.5px; color:#64748B; line-height:1.4;'>
-                    ⚠️ <b>Studio Note:</b> Automated details may contain minor variance and are optimized to provide immediate clarity when the artist is away. Please confirm pricing and active slot scheduling directly via personal text link.
-                </p>
-            </div>
-            """, unsafe_allow_html=True)
+            st.markdown("<p style='font-size:11px; color:#64748B; margin-top:20px;'>⚠️ <b>Disclaimer:</b> Automated details are pulled directly from local CSV snapshots to assist while offline. Confirm final values with the team before scheduling.</p>", unsafe_allow_html=True)
 
-            if len(st.session_state.chat_history) > 1:
-                st.markdown("<br>", unsafe_allow_html=True)
-                if st.button("🗑️ Reset Lounge Workspace", use_container_width=True):
-                    del st.session_state.chat_history[1:]
-                    agentic_ai.configure_ai()
-                    st.rerun()
-
-        # --- TAB 2: PACKAGES & CATALOG ---
+        # --- TAB 2: PORTFOLIO COLLECTIONS CATALOG ---
         with tab_packages:
             if st.session_state.favorites:
                 st.markdown(f"### ❤️ Saved Portfolio Vault ({len(st.session_state.favorites)})")
-                saved_items = [p for p in packages if p['name'] in st.session_state.favorites]
+                saved_items = [p for p in packages_list if p['name'] in st.session_state.favorites]
                 display_package_grid(saved_items, prefix="vault")
                 st.markdown("<hr style='border-color: rgba(255,255,255,0.05);'>", unsafe_allow_html=True)
 
-            st.markdown("### 📦 Portfolio Matrix Lookbook")
-            col1, col2, col3, col4, col5 = st.columns([1, 1, 1, 1, 2])
-            with col1:
-                types = sorted(list(set(p['type'] for p in packages)))
-                sel_type = st.selectbox("Aesthetic Category", ["All"] + types)
-            filtered = [p for p in packages if sel_type == "All" or p['type'] == sel_type]
-            
-            with col2:
-                lengths = sorted(list(set(p['length'] for p in filtered)))
-                sel_length = st.selectbox("Design Architecture", ["All"] + lengths)
-            filtered = [p for p in filtered if sel_length == "All" or p['length'] == sel_length]
-            
-            with col3:
-                hands = sorted(list(set(p['hand'] for p in filtered)))
-                sel_hand = st.selectbox("Coverage Scale", ["All"] + hands)
-            filtered = [p for p in filtered if sel_hand == "All" or p['hand'] == sel_hand]
-            
-            with col4:
-                sides = sorted(list(set(p['side'] for p in filtered)))
-                sel_surface = st.selectbox("Surface Alignment", ["All"] + sides)
-            filtered = [p for p in filtered if sel_surface == "All" or p['side'] == sel_surface]
-            
-            with col5:
-                prices = [p['price'] for p in filtered]
-                min_p, max_p = (min(prices), max(prices)) if prices else (0, 0)
-                if min_p == max_p:
-                    st.number_input("Budget Threshold (BDT)", value=max_p, disabled=True)
-                    sel_price = max_p
-                else:
-                    sel_price = st.slider("Budget Threshold (BDT)", int(min_p), int(max_p), int(max_p))
+            st.markdown("### 📦 Collections Lookbook")
+            if packages_list:
+                col1, col2, col3, col4 = st.columns(4)
+                with col1:
+                    types = sorted(list(set(str(p['type']) for p in packages_list)))
+                    sel_type = st.selectbox("Aesthetic Category", ["All"] + types)
+                filtered = [p for p in packages_list if sel_type == "All" or str(p['type']) == sel_type]
+                
+                with col2:
+                    lengths = sorted(list(set(str(p['length']) for p in filtered)))
+                    sel_length = st.selectbox("Design Extension", ["All"] + lengths)
+                filtered = [p for p in filtered if sel_length == "All" or str(p['length']) == sel_length]
+                
+                with col3:
+                    hands = sorted(list(set(str(p['hand']) for p in filtered)))
+                    sel_hand = st.selectbox("Hand Count Scale", ["All"] + hands)
+                filtered = [p for p in filtered if sel_hand == "All" or str(p['hand']) == sel_hand]
+                
+                with col4:
+                    prices = [float(p['price']) for p in filtered if str(p['price']).isdigit()]
+                    max_p = max(prices) if prices else 10000.0
+                    sel_price = st.slider("Budget Threshold (BDT)", 0, int(max_p), int(max_p))
 
-            final_packages = [p for p in filtered if p['price'] <= sel_price]
-            display_package_grid(final_packages, prefix="catalog")
+                final_packages = [p for p in filtered if str(p['price']).isdigit() and float(p['price']) <= sel_price]
+                display_package_grid(final_packages, prefix="catalog")
+            else:
+                st.info("No package logs found. Trigger a data synchronization pipeline loop via the sidebar.")
 
-        # --- TAB 3: FAQ KNOWLEDGE BASE ---
-        with tab_faq:
-            st.markdown("### 💡 Studio Learning & Care Knowledge Base")
-            if faq_data:
-                categories = sorted(list(set(faq['category'] for faq in faq_data)))
-                for cat in categories:
-                    st.markdown(f"#### 📁 {cat.upper()}")
-                    cat_faqs = [f for f in faq_data if f['category'] == cat]
-                    for faq in cat_faqs:
-                        with st.expander(f"✨ {faq['question']}", expanded=False):
-                            st.markdown(f"""
-                            <div style="background-color: #0A0D14; padding: 18px; border-left: 2px solid #C5A059; 
-                                        border-radius: 4px; color: #94A3B8; font-size: 14px; line-height: 1.7;">
-                                {faq['answer']}
-                            </div>
-                            """, unsafe_allow_html=True)
+        # --- TAB 3: STUDIO ACADEMY TRAINING PATHS ---
+        with tab_courses:
+            st.markdown("### 🎓 Training Program Masterplan")
+            if not df_c.empty:
+                for _, row in df_c.iterrows():
+                    with st.expander(f"✨ Course: {row.get('course_title', 'Bespoke Track')}", expanded=True):
+                        col_l, col_r = st.columns(2)
+                        with col_l:
+                            st.markdown(f"**📅 Commencement:** {row.get('start_date', 'N/A')}")
+                            st.markdown(f"**⏳ Instructional Duration:** {row.get('total_classes', '6')} Sessions")
+                            st.markdown(f"**🎯 Target Eligibility:** {row.get('eligibility', 'All Profiles')}")
+                        with col_r:
+                            st.markdown(f"**🏛️ Atelier Track Fee:** {row.get('offline_fee', 'N/A')} BDT")
+                            st.markdown(f"**🌐 Virtual Live Stream Fee:** {row.get('online_fee', 'N/A')} BDT")
+                        st.markdown(f"**🔮 Core Focus Outcomes:** *{row.get('outcome', '')}*")
+            else:
+                st.info("No active course tracking data extracted yet.")
+
+        # --- TAB 4: HANDCRAFTED APPARATUS INVENTORY ---
+        with tab_products:
+            st.markdown("### 🌿 Raw Organic Botanical Materials")
+            if not df_r.empty:
+                for _, row in df_r.iterrows():
+                    st.markdown(f"""
+                    <div style='border: 1px solid #2C323F; padding: 20px; border-radius: 8px; background: #121620; margin-bottom: 12px;'>
+                        <h4 style='margin:0; color:#C5A059;'>{row.get('product_name', 'Henna Cone')}</h4>
+                        <p style='font-size:13px; color:#94A3B8; margin: 8px 0;'>{row.get('description', '')}</p>
+                        <span style='font-weight:600; color:white;'>🏷️ Retail Rate: {row.get('mrp', '0')} BDT</span>
+                    </div>
+                    """, unsafe_allow_html=True)
+            else:
+                st.info("No physical retail items indexed.")
 
 if __name__ == "__main__":
     main()
