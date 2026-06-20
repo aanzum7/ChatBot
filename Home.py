@@ -120,7 +120,6 @@ class FAQHandler:
 def apply_premium_styles():
     st.set_page_config(page_title="Rafiya's Henna Portal", page_icon="🌿", layout="wide")
     
-    # Clean injection using standard text replacements to avoid structural UI template breaks
     st.markdown("""
     <style>
         .stApp, [data-testid="stAppViewContainer"], [data-testid="stSidebar"] {
@@ -173,6 +172,17 @@ def apply_premium_styles():
             border: 1px solid #262B36 !important;
             border-radius: 14px !important;
         }
+        
+        /* Premium Tab Styling */
+        button[data-baseweb="tab"] {
+            color: #9CA3AF !important;
+            font-size: 16px !important;
+            font-weight: 600 !important;
+        }
+        button[aria-selected="true"] {
+            color: #D4AF37 !important;
+            border-bottom-color: #D4AF37 !important;
+        }
     </style>
     """, unsafe_allow_html=True)
 
@@ -180,7 +190,7 @@ def apply_premium_styles():
 # Visual Component Layout Helpers
 # ---------------------------
 def display_package_grid(package_list: List[Dict], prefix: str):
-    """Displays a responsive 4-column portfolio matrix matching NovelNexus engine."""
+    """Displays a responsive 4-column portfolio matrix."""
     for idx, item in enumerate(package_list):
         if idx % 4 == 0:
             row_items = package_list[idx:idx+4]
@@ -282,9 +292,9 @@ def main():
                 "[✉️ Direct Mail Inbox](mailto:rafiyashennaart@gmail.com)"
             )
             
-    # --- ROUTE B: MAIN MARKETPLACE HOME ---
+    # --- ROUTE B: MAIN MARKETPLACE HOME (WITH TABS) ---
     else:
-        # Header Instagram Profile Badge
+        # Header Profile Badge
         st.markdown("""
         <div style="text-align: center; margin-top: 15px; margin-bottom: 25px;">
             <div style="display: inline-block; width: 90px; height: 90px; border-radius: 50%; background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); padding: 3px;">
@@ -295,100 +305,104 @@ def main():
         </div>
         """, unsafe_allow_html=True)
 
-        # 1. Favorites Vault Shelf
-        if st.session_state.favorites:
-            st.markdown(f"## ❤️ Your Saved Favorites Vault ({len(st.session_state.favorites)})")
-            saved_items = [p for p in packages if p['name'] in st.session_state.favorites]
-            display_package_grid(saved_items, prefix="vault")
-            st.markdown("---")
+        # Generating Tabs
+        tab_packages, tab_chat, tab_faq = st.tabs([
+            "📦 Portfolio Catalog", 
+            "💬 DM Assistant", 
+            "💡 Knowledge Base"
+        ])
 
-        # 2. Lookbook Catalog Filter Engines
-        st.markdown("## 📦 Curated Portfolios Collection")
-        
-        col1, col2, col3, col4, col5 = st.columns([1, 1, 1, 1, 2])
-        with col1:
-            types = sorted(list(set(p['type'] for p in packages)))
-            sel_type = st.selectbox("Category Filter", ["All"] + types)
-        filtered = [p for p in packages if sel_type == "All" or p['type'] == sel_type]
-        
-        with col2:
-            lengths = sorted(list(set(p['length'] for p in filtered)))
-            sel_length = st.selectbox("Design Length", ["All"] + lengths)
-        filtered = [p for p in filtered if sel_length == "All" or p['length'] == sel_length]
-        
-        with col3:
-            hands = sorted(list(set(p['hand'] for p in filtered)))
-            sel_hand = st.selectbox("Hand Count", ["All"] + hands)
-        filtered = [p for p in filtered if sel_hand == "All" or p['hand'] == sel_hand]
-        
-        with col4:
-            sides = sorted(list(set(p['side'] for p in filtered)))
-            sel_side = st.selectbox("Coverage Side", ["All"] + sides)
-        filtered = [p for p in filtered if sel_side == "All" or p['side'] == sel_side]
-        
-        with col5:
-            prices = [p['price'] for p in filtered]
-            min_p, max_p = (min(prices), max(prices)) if prices else (0, 0)
-            if min_p == max_p:
-                st.number_input("Max Budget Limit (BDT)", value=max_p, disabled=True)
-                sel_price = max_p
-            else:
-                sel_price = st.slider("Max Budget Limit (BDT)", int(min_p), int(max_p), int(max_p))
+        # --- TAB 1: PACKAGES & CATALOG ---
+        with tab_packages:
+            if st.session_state.favorites:
+                st.markdown(f"### ❤️ Your Saved Favorites Vault ({len(st.session_state.favorites)})")
+                saved_items = [p for p in packages if p['name'] in st.session_state.favorites]
+                display_package_grid(saved_items, prefix="vault")
+                st.markdown("---")
 
-        final_packages = [p for p in filtered if p['price'] <= sel_price]
-        
-        # Display Core Catalog Shelf
-        display_package_grid(final_packages, prefix="catalog")
-        st.markdown("---")
-
-        # 3. AI Assistant Lounge (Henna Whisperer)
-        st.markdown(f"## 💬 DM Assistant: **Henna Whisperer**")
-        
-        for chat in st.session_state.chat_history:
-            with st.chat_message("user"):
-                st.markdown(f"""<div style="background:#1F3520; color:#F3F4F6; padding:14px; border-radius:16px 16px 2px 16px; font-size:15px; border: 1px solid #2e4d30; max-width: 85%; margin-left: auto;">{chat['user']}</div>""", unsafe_allow_html=True)
-            with st.chat_message("assistant"):
-                st.markdown(f"""<div style="background:#231E16; color:#F3F4F6; padding:14px; border-radius:16px 16px 16px 2px; font-size:15px; border: 1px solid #4a3b20; max-width: 85%;"><b>Henna Whisperer:</b><br>{chat['bot']}</div>""", unsafe_allow_html=True)
-
-        user_query = st.chat_input("Message Henna Whisperer about portfolio sets, care techniques or styles...")
-
-        if user_query:
-            with st.chat_message("user"):
-                st.markdown(f"""<div style="background:#1F3520; padding:14px; border-radius:16px 16px 2px 16px;">{user_query}</div>""", unsafe_allow_html=True)
+            st.markdown("### 📦 Curated Portfolios Collection")
+            col1, col2, col3, col4, col5 = st.columns([1, 1, 1, 1, 2])
+            with col1:
+                types = sorted(list(set(p['type'] for p in packages)))
+                sel_type = st.selectbox("Category Filter", ["All"] + types)
+            filtered = [p for p in packages if sel_type == "All" or p['type'] == sel_type]
             
-            with st.spinner("Henna Whisperer is typing..."):
-                faq_q, faq_a = faq_handler.find_similar_question(user_query)
-                reply = f"🔍 **FAQ Match:** *{faq_q}*\n\n{faq_a}" if faq_a else agentic_ai.generate_response(user_query)
+            with col2:
+                lengths = sorted(list(set(p['length'] for p in filtered)))
+                sel_length = st.selectbox("Design Length", ["All"] + lengths)
+            filtered = [p for p in filtered if sel_length == "All" or p['length'] == sel_length]
             
-            with st.chat_message("assistant"):
-                st.markdown(f"""<div style="background:#231E16; padding:14px; border-radius:16px 16px 16px 2px;">{reply}</div>""", unsafe_allow_html=True)
+            with col3:
+                hands = sorted(list(set(p['hand'] for p in filtered)))
+                sel_hand = st.selectbox("Hand Count", ["All"] + hands)
+            filtered = [p for p in filtered if sel_hand == "All" or p['hand'] == sel_hand]
             
-            st.session_state.chat_history.append({"user": user_query, "bot": reply})
-            st.rerun()
+            with col4:
+                sides = sorted(list(set(p['side'] for p in filtered)))
+                sel_side = st.selectbox("Coverage Side", ["All"] + sides)
+            filtered = [p for p in filtered if sel_side == "All" or p['side'] == sel_side]
+            
+            with col5:
+                prices = [p['price'] for p in filtered]
+                min_p, max_p = (min(prices), max(prices)) if prices else (0, 0)
+                if min_p == max_p:
+                    st.number_input("Max Budget Limit (BDT)", value=max_p, disabled=True)
+                    sel_price = max_p
+                else:
+                    sel_price = st.slider("Max Budget Limit (BDT)", int(min_p), int(max_p), int(max_p))
 
-        if st.session_state.chat_history:
-            if st.button("🗑️ Reset DM Conversational Canvas", use_container_width=True):
-                st.session_state.chat_history = []
-                agentic_ai.configure_ai()
+            final_packages = [p for p in filtered if p['price'] <= sel_price]
+            display_package_grid(final_packages, prefix="catalog")
+
+        # --- TAB 2: AI CHAT ASSISTANT ---
+        with tab_chat:
+            st.markdown(f"### 💬 DM Assistant: **Henna Whisperer**")
+            
+            for chat in st.session_state.chat_history:
+                with st.chat_message("user"):
+                    st.markdown(f"""<div style="background:#1F3520; color:#F3F4F6; padding:14px; border-radius:16px 16px 2px 16px; font-size:15px; border: 1px solid #2e4d30; max-width: 85%; margin-left: auto;">{chat['user']}</div>""", unsafe_allow_html=True)
+                with st.chat_message("assistant"):
+                    st.markdown(f"""<div style="background:#231E16; color:#F3F4F6; padding:14px; border-radius:16px 16px 16px 2px; font-size:15px; border: 1px solid #4a3b20; max-width: 85%;"><b>Henna Whisperer:</b><br>{chat['bot']}</div>""", unsafe_allow_html=True)
+
+            user_query = st.chat_input("Message Henna Whisperer about portfolio sets, care techniques or styles...")
+
+            if user_query:
+                with st.chat_message("user"):
+                    st.markdown(f"""<div style="background:#1F3520; padding:14px; border-radius:16px 16px 2px 16px;">{user_query}</div>""", unsafe_allow_html=True)
+                
+                with st.spinner("Henna Whisperer is typing..."):
+                    faq_q, faq_a = faq_handler.find_similar_question(user_query)
+                    reply = f"🔍 **FAQ Match:** *{faq_q}*\n\n{faq_a}" if faq_a else agentic_ai.generate_response(user_query)
+                
+                with st.chat_message("assistant"):
+                    st.markdown(f"""<div style="background:#231E16; padding:14px; border-radius:16px 16px 16px 2px;">{reply}</div>""", unsafe_allow_html=True)
+                
+                st.session_state.chat_history.append({"user": user_query, "bot": reply})
                 st.rerun()
 
-        st.markdown("---")
+            if st.session_state.chat_history:
+                st.markdown("<br>", unsafe_allow_html=True)
+                if st.button("🗑️ Reset DM Conversational Canvas", use_container_width=True):
+                    st.session_state.chat_history = []
+                    agentic_ai.configure_ai()
+                    st.rerun()
 
-        # 4. Help Center Knowledge Base
-        st.markdown("## 💡 Knowledge Base Help Center")
-        if faq_data:
-            categories = sorted(list(set(faq['category'] for faq in faq_data)))
-            for cat in categories:
-                st.markdown(f"#### 📁 {cat.upper()}")
-                cat_faqs = [f for f in faq_data if f['category'] == cat]
-                for faq in cat_faqs:
-                    with st.expander(f"✨ {faq['question']}", expanded=False):
-                        st.markdown(f"""
-                        <div style="background-color: #1C202A; padding: 16px; border-left: 3px solid #D4AF37; 
-                                    border-radius: 4px; color: #E5E7EB; font-size: 14.5px; line-height: 1.6;">
-                            {faq['answer']}
-                        </div>
-                        """, unsafe_allow_html=True)
+        # --- TAB 3: FAQ KNOWLEDGE BASE ---
+        with tab_faq:
+            st.markdown("### 💡 Knowledge Base Help Center")
+            if faq_data:
+                categories = sorted(list(set(faq['category'] for faq in faq_data)))
+                for cat in categories:
+                    st.markdown(f"#### 📁 {cat.upper()}")
+                    cat_faqs = [f for f in faq_data if f['category'] == cat]
+                    for faq in cat_faqs:
+                        with st.expander(f"✨ {faq['question']}", expanded=False):
+                            st.markdown(f"""
+                            <div style="background-color: #1C202A; padding: 16px; border-left: 3px solid #D4AF37; 
+                                        border-radius: 4px; color: #E5E7EB; font-size: 14.5px; line-height: 1.6;">
+                                {faq['answer']}
+                            </div>
+                            """, unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
